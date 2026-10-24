@@ -10,3 +10,4 @@ psutil
 # PyTorch : installer à part selon la machine (CPU / CUDA), voir https://pytorch.org/get-started/locally/
 # torch
 # torchvision
+pytest
