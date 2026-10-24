@@ -1,0 +1,12 @@
+numpy
+pandas
+openpyxl          # lecture de metadata_classification_DR.xlsx
+scikit-learn
+opencv-python
+requests
+tqdm
+pyyaml
+psutil
+# PyTorch : installer à part selon la machine (CPU / CUDA), voir https://pytorch.org/get-started/locally/
+# torch
+# torchvision
