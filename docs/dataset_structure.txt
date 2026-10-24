@@ -1,0 +1,37 @@
+﻿=== Arborescence (3 niveaux, 5 entrÚes max par dossier) ===
+.extraction_ok
+classification DR.xlsx
+images/
+  228QQUAD01.jpg
+  228QQUAD02.jpg
+  22BD3SBD01.jpg
+  22BD3SBD02.jpg
+  22BD3SBD03.jpg
+  ... (+2994 autres)
+
+=== 2999 images ===
+Extensions : Counter({'.jpg': 2999})
+Images par dossier parent : Counter({'images': 2999})
+Exemples de noms : ['228QQUAD01.jpg', '228QQUAD02.jpg', '22BD3SBD01.jpg', '22BD3SBD02.jpg', '22BD3SBD03.jpg']
+
+=== MÚtadonnÚes : metadata_classification_DR.xlsx ===
+
+--- feuille 'Toutes' : 3000 lignes x 6 colonnes
+image_id          str
+classe          int64
+grade_DR          str
+sexe              str
+age             int64
+type_diabete    int64
+     image_id  classe         grade_DR sexe  age  type_diabete
+0  WAJHZX6C01       0  DR0 - Pas de RD    M   58             2
+1  T9NT4V5U01       0  DR0 - Pas de RD    M   56             2
+2  T9NT4V5U02       0  DR0 - Pas de RD    M   56             2
+3  2T2SALA701       0  DR0 - Pas de RD    M   44             2
+4  2T2SALA702       0  DR0 - Pas de RD    M   44             2
+image_id -> 3000 valeurs distinctes
+classe -> {1: 701, 3: 632, 2: 583, 4: 579, 0: 505}
+grade_DR -> {'DR1 - Minime': 701, 'DR3 - Severe': 632, 'DR2 - Moderee': 583, 'DR4 - Proliferante': 579, 'DR0 - Pas de RD': 505}
+sexe -> {'F': 1538, 'M': 1462}
+age -> 65 valeurs distinctes
+type_diabete -> {2: 2794, 1: 206}

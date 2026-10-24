@@ -2,7 +2,7 @@
 
 Projet « Programmation GPU et optimisation des performances » — classification de la rétinopathie diabétique (5 grades ALFEDIAM, 0 à 4) sur le dataset FDR26, accélération GPU d'un pipeline CPU de référence.
 
-**Équipe** : Zeynab Belkasmi, Ouiam Ouatat, *(à compléter)*
+**Équipe** : Zeynab Belkasmi, Ouiam Ouatat, Amina Ouaayi , Meryem Ramdi
 
 ## Installation
 
