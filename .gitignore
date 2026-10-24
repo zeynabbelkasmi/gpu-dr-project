@@ -1,0 +1,23 @@
+# Données : jamais dans git (1,7 Go). Chacun les télécharge avec scripts/download_data.py
+data/
+*.zip
+*.part
+*.pth
+
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Sorties lourdes (les CSV/JSON de results/ restent versionnés)
+results/**/*.npy
+results/**/*.pt
+checkpoints/
