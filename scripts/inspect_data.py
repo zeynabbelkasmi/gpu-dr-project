@@ -12,6 +12,9 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from src.paths import DATA_DIR, METADATA  # noqa: E402
 
+if not DATA_DIR.is_dir():
+    sys.exit(f"{DATA_DIR} introuvable : lance d'abord  python scripts/download_data.py")
+
 IMG_EXT = {".png", ".jpg", ".jpeg", ".tif", ".tiff", ".bmp"}
 
 print("=== Arborescence (3 niveaux, 5 entrées max par dossier) ===")
