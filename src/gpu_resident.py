@@ -60,6 +60,8 @@ def _uint8_split(items, cfg, device):
     else:
         ds = DRDataset(items, size)
         u8 = np.stack([ds.load(i) for i in range(len(items))])
+    if not u8.flags.writeable:                      # read-only memmap: torch warns on from_numpy
+        u8 = np.array(u8)
     t = torch.from_numpy(np.ascontiguousarray(u8)).to(device)          # one H2D copy per split
     return t.permute(0, 3, 1, 2).contiguous()
 

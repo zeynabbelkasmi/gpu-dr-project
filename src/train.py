@@ -95,11 +95,13 @@ def make_gpu_pre(cfg, device, augment):
 
 
 def main(cfg_path, device_str, run=None, gpu_preprocess=None, epochs=None,
-         monitor=False, out_root="results", ckpt_root="checkpoints"):
+         monitor=False, out_root="results", ckpt_root="checkpoints", seed=None):
     t_start = time.perf_counter()
     cfg = yaml.safe_load(open(cfg_path))
     if epochs is not None:
         cfg["train"]["epochs"] = epochs
+    if seed is not None:          # repeat a run with another seed; the split (split_csv) is unchanged
+        cfg["seed"] = seed
     run = run or os.path.splitext(os.path.basename(cfg_path))[0]
     # A1.5: cudnn.benchmark stays False for accuracy runs; throughput configs may enable it
     set_seed(cfg["seed"], cudnn_benchmark=bool(cfg["train"].get("cudnn_benchmark", False)))
@@ -232,6 +234,8 @@ if __name__ == "__main__":
                     help="force GPU preprocessing (default: preprocess.gpu from config)")
     ap.add_argument("--cpu-preprocess", dest="gpu_preprocess", action="store_false")
     ap.add_argument("--epochs", type=int, default=None)
+    ap.add_argument("--seed", type=int, default=None, help="override cfg seed (split unchanged)")
     ap.add_argument("--monitor", action="store_true", help="log CPU/GPU utilization")
     args = ap.parse_args()
-    main(args.config, args.device, args.run, args.gpu_preprocess, args.epochs, args.monitor)
+    main(args.config, args.device, args.run, args.gpu_preprocess, args.epochs, args.monitor,
+         seed=args.seed)
