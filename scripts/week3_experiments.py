@@ -26,7 +26,11 @@ RUNS = [
     ("exp_channels_last_gpu", "configs/exp_channels_last.yaml", "cuda"),  # A6.2
     ("exp_compile_gpu", "configs/exp_compile.yaml", "cuda"),     # A6.3 (optional)
     ("exp_resnet18_gpu", "configs/exp_resnet18.yaml", "cuda"),   # A6.6 model effect
-    ("optimized", "configs/optimized.yaml", "cuda"),             # everything on
+    ("exp_gpu_resident_gpu", "configs/exp_gpu_resident.yaml", "cuda"),  # data stays on the GPU
+    ("exp_precompute_gpu", "configs/exp_precompute.yaml", "cuda"),      # A5.9 (on top of it)
+    ("optimized_cnn", "configs/optimized_cnn.yaml", "cuda"),     # everything on, reference model
+    ("optimized", "configs/optimized.yaml", "cuda"),             # final design (ResNet-18)
+    ("exp_compile_ro_gpu", "configs/exp_compile_ro.yaml", "cuda"),  # + CUDA graphs (optional, last)
 ]
 
 
@@ -40,6 +44,8 @@ def row(run):
             "preprocessing": "gpu" if h.get("gpu_preprocess") else "cpu",
             "prefetch_gpu": h.get("prefetch_gpu", False),
             "channels_last": h.get("channels_last", False), "compile": h.get("compile", False),
+            "gpu_resident": h.get("gpu_resident", False), "precompute": h.get("precompute", False),
+            "setup_time_s": h["setup_time_s"],
             "batch_size": cfg["data"]["batch_size"], "num_workers": cfg["data"]["num_workers"],
             "cold_epoch_s": h["cold_epoch_s"], "steady_epoch_s": h["steady_epoch_s"],
             "train_imgs_per_s": last["train_imgs_per_s"],
@@ -65,12 +71,16 @@ def main():
         if dev == "cuda" and not has_cuda:
             print(f"[skip] {run}: CUDA not available", flush=True)
             continue
-        if run == "exp_compile_gpu" and sys.platform == "win32":
+        if run.startswith("exp_compile") and sys.platform == "win32":
             print(f"[skip] {run}: torch.compile needs Triton (Linux)", flush=True)
             continue
         if args.force or not os.path.exists(os.path.join("results", run, "history.json")):
             ep = args.cpu_epochs if dev == "cpu" else args.epochs
-            train_main(cfg, dev, run=run, epochs=ep, monitor=(run == "optimized"))
+            try:
+                train_main(cfg, dev, run=run, epochs=ep, monitor=(run == "optimized"))
+            except Exception as e:                  # one failing variant must not stop the others
+                print(f"[fail] {run}: {type(e).__name__}: {e}", flush=True)
+                continue
         done.append(run)
     df = pd.DataFrame([row(r) for r in done])
     ref = df.loc[df.run == "exp_cache_cpu", "steady_epoch_s"]

@@ -107,3 +107,21 @@ def test_prefetcher_yields_same_batches_on_device():
     for (x, y), (rx, ry) in zip(got, ref):
         assert x.is_cuda and y.is_cuda
         assert torch.equal(x.cpu(), rx) and torch.equal(y.cpu(), ry)
+
+
+def test_gpu_resident_loader_covers_split_once():
+    from src.gpu_resident import GpuResidentLoader
+    x = torch.arange(10, dtype=torch.float32).view(10, 1, 1, 1).expand(10, 3, 4, 4).contiguous()
+    y = torch.arange(10)
+    tr = GpuResidentLoader(x, y, batch_size=3, shuffle=True, drop_last=True)
+    got = list(tr)
+    assert len(got) == len(tr) == 3
+    seen = torch.cat([b for _, b in got])
+    assert len(set(seen.tolist())) == 9                      # no duplicates, last partial dropped
+    for xb, yb in got:                                        # images stay paired with labels
+        assert torch.equal(xb[:, 0, 0, 0].long(), yb)
+    va = GpuResidentLoader(x, y, batch_size=3, shuffle=False, drop_last=False)
+    assert len(va) == 4 and torch.equal(torch.cat([b for _, b in va]), y)
+    aug = GpuResidentLoader(x, y, batch_size=4, shuffle=True, drop_last=True, augment=True)
+    for xb, _ in aug:
+        assert xb.shape == (4, 3, 4, 4) and xb.dtype == x.dtype

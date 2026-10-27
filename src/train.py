@@ -101,7 +101,8 @@ def main(cfg_path, device_str, run=None, gpu_preprocess=None, epochs=None,
     if epochs is not None:
         cfg["train"]["epochs"] = epochs
     run = run or os.path.splitext(os.path.basename(cfg_path))[0]
-    set_seed(cfg["seed"])
+    # A1.5: cudnn.benchmark stays False for accuracy runs; throughput configs may enable it
+    set_seed(cfg["seed"], cudnn_benchmark=bool(cfg["train"].get("cudnn_benchmark", False)))
     device = torch.device(device_str)
     gpu_pre_on = resolve_gpu_preprocess(cfg, device, gpu_preprocess)
     augment = bool(cfg["preprocess"].get("augment", False))
@@ -117,25 +118,42 @@ def main(cfg_path, device_str, run=None, gpu_preprocess=None, epochs=None,
     # A5.5: overlap the host-to-device copy of batch i+1 with the compute of batch i.
     prefetch_on = bool(cfg["data"].get("prefetch_gpu", False)) and is_cuda
     # A5.3: two callables: random augmentation on train only, deterministic for validation.
-    pre_tr = make_gpu_pre(cfg, device, augment=augment) if gpu_pre_on else None
-    pre_va = make_gpu_pre(cfg, device, augment=False) if gpu_pre_on else None
+    # Beyond A5: whole split in GPU memory (src/gpu_resident.py); optional precompute (A5.9).
+    resident = bool(cfg["data"].get("gpu_resident", False)) and is_cuda
+    precompute = resident and bool(cfg["preprocess"].get("precompute", False))
+    if resident:
+        gpu_pre_on, prefetch_on = True, False        # data never leaves the GPU: nothing to prefetch
+    pre_tr = make_gpu_pre(cfg, device, augment=augment) if gpu_pre_on and not precompute else None
+    pre_va = make_gpu_pre(cfg, device, augment=False) if gpu_pre_on and not precompute else None
 
-    loaders, splits = make_loaders(cfg, device.type, gpu_preprocess=gpu_pre_on, which=("train", "val"))
+    if resident:
+        from src.gpu_resident import make_gpu_resident_loaders
+        loaders, splits = make_gpu_resident_loaders(cfg, device, ("train", "val"), augment=augment,
+                                                    precompute=precompute, store_fp16=amp)
+    else:
+        loaders, splits = make_loaders(cfg, device.type, gpu_preprocess=gpu_pre_on,
+                                       which=("train", "val"))
     if prefetch_on:
         from src.prefetcher import CudaPrefetcher
         loaders = {k: CudaPrefetcher(v, device) for k, v in loaders.items()}
     split_sizes = {k: len(v) for k, v in splits.items()}
     print(f"[train:{run}] device={device} gpu_preprocess={gpu_pre_on} "
           f"augment={augment} amp={amp} channels_last={channels_last} compile={compile_on} "
-          f"prefetch_gpu={prefetch_on} splits={split_sizes}", flush=True)
+          f"prefetch_gpu={prefetch_on} gpu_resident={resident} precompute={precompute} "
+          f"splits={split_sizes}", flush=True)
 
     model = build_model(cfg["train"]["model"], cfg["data"]["num_classes"]).to(device)
     if channels_last:
         model = model.to(memory_format=torch.channels_last)
     # train through the compiled wrapper, but save model.state_dict() (clean keys, no _orig_mod.)
-    net = torch.compile(model) if compile_on else model
+    # compile_mode "reduce-overhead" uses CUDA graphs: removes per-kernel launch cost (small model)
+    net = (torch.compile(model, mode=cfg["train"].get("compile_mode", "default"))
+           if compile_on else model)
+    # fused AdamW: one kernel for the whole parameter update instead of several per tensor
+    fused = bool(cfg["train"].get("fused_adamw", False)) and is_cuda
     opt = torch.optim.AdamW(model.parameters(), lr=cfg["train"]["lr"],
-                            weight_decay=cfg["train"].get("weight_decay", 0.0))
+                            weight_decay=cfg["train"].get("weight_decay", 0.0),
+                            **({"fused": True} if fused else {}))
     sched = None
     if cfg["train"].get("scheduler") == "cosine":
         sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=cfg["train"]["epochs"])
@@ -193,7 +211,9 @@ def main(cfg_path, device_str, run=None, gpu_preprocess=None, epochs=None,
     save_json({"run": run, "config": cfg_path, "cfg": cfg, "device": device_str,
                "gpu_preprocess": gpu_pre_on, "augment": augment, "amp": amp,
                "channels_last": channels_last, "compile": compile_on,
-               "prefetch_gpu": prefetch_on, "splits": split_sizes,
+               "prefetch_gpu": prefetch_on, "gpu_resident": resident, "precompute": precompute,
+               "fused_adamw": fused, "cudnn_benchmark": torch.backends.cudnn.benchmark,
+               "splits": split_sizes,
                "setup_time_s": setup_s, "wall_time_s": wall_s,
                "cold_epoch_s": epoch_times[0], "steady_epoch_s": sum(steady) / len(steady),
                "best_val_acc": best_val, "history": history},
