@@ -1,0 +1,12 @@
+C:\Users\zeyna\gpu-dr-project\src\data_loader.py:61: UserWarning: 1 image(s) listée(s) dans les métadonnées mais absente(s) : ['2T2SALA702'] -> ignorée(s)
+  warnings.warn(msg + " -> ignorée(s)")
+[train:exp_cache] device=cpu gpu_preprocess=False augment=False splits={'train': 2099, 'val': 450, 'test': 450}
+epoch 0: train_loss=1.5832 train_acc=0.2317 val_acc=0.2889 val_f1=0.1850 train_time=45.34s (46 img/s)
+epoch 1: train_loss=1.5544 train_acc=0.2692 val_acc=0.2822 val_f1=0.2344 train_time=45.05s (46 img/s)
+epoch 2: train_loss=1.5292 train_acc=0.2952 val_acc=0.3089 val_f1=0.2412 train_time=45.17s (46 img/s)
+epoch 3: train_loss=1.4991 train_acc=0.3418 val_acc=0.3644 val_f1=0.3094 train_time=45.02s (46 img/s)
+epoch 4: train_loss=1.4798 train_acc=0.3452 val_acc=0.3911 val_f1=0.3499 train_time=45.16s (46 img/s)
+[train:exp_cache] best val_acc=0.3911; wall=280.8s; history -> results\exp_cache/history.json
+C:\Users\zeyna\gpu-dr-project\src\data_loader.py:61: UserWarning: 1 image(s) listée(s) dans les métadonnées mais absente(s) : ['2T2SALA702'] -> ignorée(s)
+  warnings.warn(msg + " -> ignorée(s)")
+[eval:exp_cache:val] n=450 acc=0.3911 P=0.4201 R=0.3846 F1=0.3499 (64 img/s) -> results\exp_cache\metrics_val.json

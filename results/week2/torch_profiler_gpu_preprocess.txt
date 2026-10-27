@@ -1,0 +1,31 @@
+-------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  
+                                                   Name    Self CPU %      Self CPU   CPU total %     CPU total  CPU time avg     Self CUDA   Self CUDA %    CUDA total  CUDA time avg    # of Calls  
+-------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  
+                                              aten::add         0.52%     590.000us         1.12%       1.265ms      22.991us      27.438ms        24.04%      27.438ms     498.875us            55  
+                                            aten::copy_         0.60%     675.600us         2.84%       3.211ms      53.520us      26.782ms        23.47%      26.782ms     446.362us            60  
+                                              aten::mul         0.77%     869.400us         1.67%       1.894ms      27.061us      24.404ms        21.38%      24.404ms     348.634us            70  
+                                               aten::to         0.13%     147.900us         3.30%       3.739ms      43.991us       0.000us         0.00%      20.820ms     244.939us            85  
+                                         aten::_to_copy         0.29%     322.800us         3.17%       3.591ms      71.826us       0.000us         0.00%      20.820ms     416.396us            50  
+_ZN2at6native18elementwise_kernelILi128ELi2EZNS0_22g...         0.00%       0.000us         0.00%       0.000us       0.000us      11.183ms         9.80%      11.183ms     372.775us            30  
+_ZN2at6native29vectorized_elementwise_kernelILi2ENS0...         0.00%       0.000us         0.00%       0.000us       0.000us       8.351ms         7.32%       8.351ms     417.546us            20  
+                                           aten::gather         0.27%     305.600us         0.47%     533.300us      26.665us       8.238ms         7.22%       8.238ms     411.904us            20  
+_ZN2at6native34_scatter_gather_elementwise_kernelILi...         0.00%       0.000us         0.00%       0.000us       0.000us       8.238ms         7.22%       8.238ms     411.904us            20  
+_ZN2at6native18elementwise_kernelILi128ELi2EZNS0_22g...         0.00%       0.000us         0.00%       0.000us       0.000us       7.846ms         6.87%       7.846ms       1.569ms             5  
+                                             aten::div_         0.13%     147.300us         0.29%     326.300us      32.630us       7.594ms         6.65%       7.594ms     759.356us            10  
+_ZN2at6native18elementwise_kernelILi128ELi2EZNS0_22g...         0.00%       0.000us         0.00%       0.000us       0.000us       7.594ms         6.65%       7.594ms     759.356us            10  
+                         Memcpy HtoD (Pinned -> Device)         0.00%       0.000us         0.00%       0.000us       0.000us       7.572ms         6.63%       7.572ms       1.514ms             5  
+_ZN2at6native18elementwise_kernelILi128ELi2EZNS0_22g...         0.00%       0.000us         0.00%       0.000us       0.000us       7.503ms         6.57%       7.503ms     214.373us            35  
+_ZN2at6native29vectorized_elementwise_kernelILi4ENS0...         0.00%       0.000us         0.00%       0.000us       0.000us       5.638ms         4.94%       5.638ms     375.885us            15  
+_ZN2at6native27unrolled_elementwise_kernelIZZZNS0_23...         0.00%       0.000us         0.00%       0.000us       0.000us       5.184ms         4.54%       5.184ms     345.598us            15  
+_ZN2at6native29vectorized_elementwise_kernelILi2ENS0...         0.00%       0.000us         0.00%       0.000us       0.000us       5.183ms         4.54%       5.183ms     207.309us            25  
+                                              aten::sum         0.18%     208.100us         0.43%     486.600us      48.660us       5.180ms         4.54%       5.180ms     518.015us            10  
+_ZN2at6native13reduce_kernelILi128ELi4ENS0_8ReduceOp...         0.00%       0.000us         0.00%       0.000us       0.000us       5.112ms         4.48%       5.112ms       1.022ms             5  
+_ZN2at6native27unrolled_elementwise_kernelIZZZNS0_23...         0.00%       0.000us         0.00%       0.000us       0.000us       4.269ms         3.74%       4.269ms     284.630us            15  
+                                          aten::addcmul         0.10%     114.300us         0.18%     204.800us      40.960us       3.884ms         3.40%       3.884ms     776.751us             5  
+_ZN2at6native18elementwise_kernelILi128ELi2EZNS0_22g...         0.00%       0.000us         0.00%       0.000us       0.000us       3.884ms         3.40%       3.884ms     776.751us             5  
+_ZN2at6native29vectorized_elementwise_kernelILi4ENS0...         0.00%       0.000us         0.00%       0.000us       0.000us       3.873ms         3.39%       3.873ms     774.537us             5  
+                                            aten::index         0.23%     266.100us         0.47%     529.700us      52.970us       3.861ms         3.38%       3.861ms     386.075us            10  
+_ZN2at6native24index_elementwise_kernelILi128ELi4EZN...         0.00%       0.000us         0.00%       0.000us       0.000us       3.861ms         3.38%       3.861ms     386.075us            10  
+-------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  
+Self CPU time total: 113.262ms
+Self CUDA time total: 114.128ms

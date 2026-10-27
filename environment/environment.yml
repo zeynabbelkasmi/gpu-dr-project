@@ -1,0 +1,17 @@
+name: gpu-dr
+# Everything except PyTorch. Install the CUDA build of PyTorch with pip afterwards
+# (see README.md), so that the CUDA version matches your driver.
+channels: [conda-forge, defaults]
+dependencies:
+  - python=3.10
+  - numpy
+  - opencv
+  - pillow
+  - pyyaml
+  - scikit-learn
+  - pandas
+  - openpyxl
+  - psutil
+  - matplotlib
+  - pytest
+  - pip

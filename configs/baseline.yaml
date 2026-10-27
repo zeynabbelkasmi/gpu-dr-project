@@ -1,0 +1,33 @@
+# CPU reference configuration. Do not change values here: it is the baseline every
+# result is compared against.
+#
+# A1.3 (answered in docs/lab_notebook.md): read Project_GPU_Acceleration_2026_V1.pdf sections 3, 4 and 7 and check this
+#   file against them, line by line. In docs/lab_notebook.md answer for each key:
+#   - does the brief require it (seed, split fractions, image size, number of classes)?
+#   - is the split patient-level, and where in the code is that enforced?
+#   - what is the checkpoint rule, and is it free of test-set information?
+#   - which keys will you add for your optimized configuration, and which stay identical
+#     so the comparison is fair (same splits, same training budget)?
+seed: 42
+data:
+  root: data/dr_dataset     # teacher layout; unused while split_csv is set
+  split_csv: splits/splits.csv   # team split (StratifiedGroupKFold, patient-level, seed 42, 70/15/15).
+                                 # Images resolved through src/paths.py (FDR26_DATA). Same split for every run.
+  image_size: [224, 224]
+  num_classes: 5
+  train_frac: 0.70
+  val_frac: 0.15
+  batch_size: 32
+  num_workers: 2
+preprocess:
+  clahe: true
+  circular_crop: true
+  normalize: true
+  gamma: 1.0
+train:
+  model: reference_cnn
+  epochs: 5
+  lr: 0.001
+  amp: false
+  weight_decay: 0.0
+  label_smoothing: 0.0

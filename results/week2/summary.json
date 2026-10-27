@@ -1,0 +1,37 @@
+{
+  "gpu_state_idle": {
+    "pcie_gen": 4,
+    "pcie_width": 8,
+    "sm_clock_mhz": 1980,
+    "pstate": "P0"
+  },
+  "gpu_state_after_warmup": {
+    "pcie_gen": 4,
+    "pcie_width": 8,
+    "sm_clock_mhz": 2370,
+    "pstate": "P0"
+  },
+  "gpu_state_end": {
+    "pcie_gen": 4,
+    "pcie_width": 8,
+    "sm_clock_mhz": 2565,
+    "pstate": "P3"
+  },
+  "n_images": 128,
+  "image_size": [
+    224,
+    224
+  ],
+  "cv2_threads": 16,
+  "torch_cpu_threads": 8,
+  "cpu_mt_workers": 8,
+  "gpu": "NVIDIA GeForce RTX 4070 Laptop GPU",
+  "torch": "2.14.1+cu130",
+  "cuda": "13.0",
+  "opencv": "5.0.0",
+  "cupy": "14.2.0",
+  "device_constants_mib": {
+    "preprocess_gpu total": 99.44880294799805,
+    "of which LAB LUTs": 96.0
+  }
+}

@@ -1,0 +1,30 @@
+-------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  
+                                                   Name    Self CPU %      Self CPU   CPU total %     CPU total  CPU time avg       CPU Mem  Self CPU Mem    # of Calls  
+-------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  
+                             aten::convolution_backward        38.91%        1.124s        38.98%        1.126s      62.558ms     443.13 MB           0 B            18  
+                               aten::mkldnn_convolution        24.67%     712.838ms        24.85%     718.078ms      39.893ms       2.01 GB           0 B            18  
+                          aten::max_pool2d_with_indices        12.03%     347.617ms        12.03%     347.617ms      19.312ms       1.51 GB       1.51 GB            18  
+                               aten::threshold_backward         8.08%     233.504ms         8.08%     233.504ms       9.729ms       2.01 GB       2.01 GB            24  
+                 aten::max_pool2d_with_indices_backward         5.87%     169.702ms        10.31%     297.860ms      16.548ms       2.01 GB       2.01 GB            18  
+                                            aten::fill_         4.52%     130.561ms         4.52%     130.561ms       3.109ms           0 B           0 B            42  
+                                       aten::clamp_min_         4.14%     119.683ms         4.14%     119.683ms       4.987ms           0 B           0 B            24  
+                                            aten::empty         0.23%       6.752ms         0.23%       6.752ms      62.515us       2.44 GB       2.44 GB           108  
+                                                forward         0.20%       5.730ms        41.54%        1.200s     200.030ms       3.52 GB      -3.75 KB             6  
+                                               backward         0.14%       4.173ms        57.97%        1.675s     279.114ms      -3.52 GB         -24 B             6  
+                              Optimizer.step#AdamW.step         0.13%       3.822ms         0.48%      13.967ms       2.328ms           0 B     -28.34 MB             6  
+                             aten::_adaptive_avg_pool2d         0.10%       2.805ms         0.11%       3.157ms     526.183us       1.50 MB           0 B             6  
+                                               aten::mm         0.08%       2.426ms         0.08%       2.432ms     101.350us      13.72 MB      13.72 MB            24  
+                    aten::_adaptive_avg_pool2d_backward         0.08%       2.348ms         0.17%       4.977ms     829.517us      73.50 MB           0 B             6  
+                                             aten::sqrt         0.08%       2.206ms         0.08%       2.206ms      36.775us      14.17 MB      14.17 MB            60  
+                                            aten::addmm         0.06%       1.624ms         0.06%       1.768ms     147.342us     195.75 KB     195.75 KB            12  
+                                              aten::div         0.05%       1.467ms         0.07%       2.082ms      34.707us      14.17 MB      14.17 MB            60  
+                                         aten::_to_copy         0.05%       1.436ms         0.07%       1.953ms       6.384us       1.20 KB           0 B           306  
+                                            aten::relu_         0.04%       1.276ms         4.19%     120.959ms       5.040ms           0 B           0 B            24  
+                                             aten::mul_         0.04%       1.207ms         0.07%       1.949ms      16.240us           0 B        -480 B           120  
+                                            aten::lerp_         0.03%     990.500us         0.03%     990.500us      16.508us           0 B           0 B            60  
+autograd::engine::evaluate_function: MaxPool2DWithIn...         0.03%     888.300us        10.35%     299.082ms      16.616ms     514.50 MB      -1.51 GB            18  
+                                         aten::addcdiv_         0.02%     710.900us         0.02%     710.900us      11.848us           0 B           0 B            60  
+autograd::engine::evaluate_function: ConvolutionBack...         0.02%     702.200us        39.01%        1.127s      62.617ms      -2.01 GB      -2.44 GB            18  
+                                               aten::to         0.02%     701.500us         0.09%       2.655ms       8.510us       1.20 KB           0 B           312  
+-------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  
+Self CPU time total: 2.889s

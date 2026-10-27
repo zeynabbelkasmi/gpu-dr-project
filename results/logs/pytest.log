@@ -1,0 +1,86 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.6, pytest-9.1.1, pluggy-1.7.0 -- C:\Users\zeyna\gpu-dr-project\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\zeyna\gpu-dr-project
+collecting ... collected 43 items
+
+tests/test_cpu_gpu_equivalence.py::test_circular_crop_equivalence PASSED [  2%]
+tests/test_cpu_gpu_equivalence.py::test_normalize_equivalence PASSED     [  4%]
+tests/test_cpu_gpu_equivalence.py::test_clahe_equivalence_within_tolerance PASSED [  6%]
+tests/test_cpu_gpu_equivalence.py::test_gaussian_filter_equivalence PASSED [  9%]
+tests/test_cpu_gpu_equivalence.py::test_median_filter_equivalence PASSED [ 11%]
+tests/test_cpu_gpu_equivalence.py::test_clahe_batched_matches_single_image PASSED [ 13%]
+tests/test_cpu_gpu_equivalence.py::test_contrast_stretch_equivalence PASSED [ 16%]
+tests/test_cpu_gpu_equivalence.py::test_uint8_batch_pipeline_matches_cpu_without_clahe PASSED [ 18%]
+tests/test_cpu_gpu_equivalence.py::test_augment_gpu_shape_range_and_per_image_randomness PASSED [ 20%]
+tests/test_cpu_gpu_equivalence.py::test_circle_mask_matches_cv2_raster[hw0] PASSED [ 23%]
+tests/test_cpu_gpu_equivalence.py::test_circle_mask_matches_cv2_raster[hw1] PASSED [ 25%]
+tests/test_cpu_gpu_equivalence.py::test_circle_mask_matches_cv2_raster[hw2] PASSED [ 27%]
+tests/test_cpu_gpu_equivalence.py::test_circle_mask_matches_cv2_raster[hw3] PASSED [ 30%]
+tests/test_cpu_gpu_equivalence.py::test_circle_mask_matches_cv2_raster[hw4] PASSED [ 32%]
+tests/test_cpu_gpu_equivalence.py::test_circle_mask_matches_cv2_raster[hw5] PASSED [ 34%]
+tests/test_cpu_gpu_equivalence.py::test_div255_is_true_division PASSED   [ 37%]
+tests/test_cpu_gpu_equivalence.py::test_clahe_lab_is_bit_exact[hw0] PASSED [ 39%]
+tests/test_cpu_gpu_equivalence.py::test_clahe_lab_is_bit_exact[hw1] PASSED [ 41%]
+tests/test_cpu_gpu_equivalence.py::test_median_filter_is_bit_exact PASSED [ 44%]
+tests/test_cpu_gpu_equivalence.py::test_median_filter_cupy_variants_are_bit_exact[median_filter_cupy_kernel] PASSED [ 46%]
+tests/test_cpu_gpu_equivalence.py::test_median_filter_cupy_variants_are_bit_exact[median_filter_cupy_ndimage] PASSED [ 48%]
+tests/test_cpu_gpu_equivalence.py::test_full_pipeline_with_clahe_matches_cpu[False-0.0] PASSED [ 51%]
+tests/test_cpu_gpu_equivalence.py::test_full_pipeline_with_clahe_matches_cpu[True-1e-06] PASSED [ 53%]
+tests/test_cpu_gpu_equivalence.py::test_augment_gpu_matches_cv2_for_fixed_parameters PASSED [ 55%]
+tests/test_cpu_gpu_equivalence.py::test_contrast_stretch_beyond_quantile_size_limit PASSED [ 58%]
+tests/test_data_loader.py::test_no_patient_leak PASSED                   [ 60%]
+tests/test_data_loader.py::test_splits_disjoint_and_complete PASSED      [ 62%]
+tests/test_data_loader.py::test_load_image_rgb_uint8 PASSED              [ 65%]
+tests/test_data_pipeline.py::test_find_images_reads_labels_from_folders PASSED [ 67%]
+tests/test_data_pipeline.py::test_split_is_patient_safe PASSED           [ 69%]
+tests/test_data_pipeline.py::test_cache_matches_direct_decode PASSED     [ 72%]
+tests/test_data_pipeline.py::test_augment_transform_changes_train_images_only PASSED [ 74%]
+tests/test_data_pipeline.py::test_validation_split_is_not_augmented PASSED [ 76%]
+tests/test_data_pipeline.py::test_run_epoch_on_tiny_batch_cpu PASSED     [ 79%]
+tests/test_data_pipeline.py::test_macro_f1_from_confusion_matrix PASSED  [ 81%]
+tests/test_data_pipeline.py::test_prefetcher_yields_same_batches_on_device FAILED [ 83%]
+tests/test_preprocessing.py::test_circular_crop_zeroes_outside PASSED    [ 86%]
+tests/test_preprocessing.py::test_clahe_preserves_range_and_shape PASSED [ 88%]
+tests/test_preprocessing.py::test_preprocess_image_output_format PASSED  [ 90%]
+tests/test_preprocessing.py::test_gaussian_blur_is_lowpass PASSED        [ 93%]
+tests/test_preprocessing.py::test_median_filter_removes_salt_noise PASSED [ 95%]
+tests/test_preprocessing.py::test_cpu_transform_is_picklable PASSED      [ 97%]
+tests/test_preprocessing.py::test_cpu_augment_shape_and_range PASSED     [100%]
+
+================================== FAILURES ===================================
+________________ test_prefetcher_yields_same_batches_on_device ________________
+
+    @pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA not available")
+    def test_prefetcher_yields_same_batches_on_device():
+        from torch.utils.data import DataLoader, TensorDataset
+        from src.prefetcher import CudaPrefetcher
+        ds = TensorDataset(torch.arange(20).float().view(10, 2), torch.arange(10))
+        loader = DataLoader(ds, batch_size=3, pin_memory=True)
+>       got = list(CudaPrefetcher(loader, "cuda"))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_data_pipeline.py:104: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <src.prefetcher.CudaPrefetcher object at 0x0000020902CD01A0>
+loader = <torch.utils.data.dataloader.DataLoader object at 0x0000020902B57110>
+device = 'cuda'
+
+    def __init__(self, loader, device):
+>       raise NotImplementedError("TODO(A5.2): CudaPrefetcher")
+E       NotImplementedError: TODO(A5.2): CudaPrefetcher
+
+src\prefetcher.py:24: NotImplementedError
+============================== warnings summary ===============================
+tests/test_data_loader.py::test_splits_disjoint_and_complete
+tests/test_data_loader.py::test_splits_disjoint_and_complete
+tests/test_data_loader.py::test_splits_disjoint_and_complete
+tests/test_data_loader.py::test_load_image_rgb_uint8
+  C:\Users\zeyna\gpu-dr-project\src\data_loader.py:61: UserWarning: 1 image(s) listée(s) dans les métadonnées mais absente(s) : ['2T2SALA702'] -> ignorée(s)
+    warnings.warn(msg + " -> ignorée(s)")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_data_pipeline.py::test_prefetcher_yields_same_batches_on_device
+================== 1 failed, 42 passed, 4 warnings in 9.02s ===================

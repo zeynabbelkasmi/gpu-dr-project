@@ -1,0 +1,48 @@
+C:\Users\zeyna\gpu-dr-project\src\data_loader.py:61: UserWarning: 1 image(s) listée(s) dans les métadonnées mais absente(s) : ['2T2SALA702'] -> ignorée(s)
+  warnings.warn(msg + " -> ignorée(s)")
+loading              cpu     2807.75 ms +/- 8.13
+preprocessing        cpu      158.19 ms +/- 1.70
+filter_gaussian      cpu       16.25 ms +/- 0.57
+filter_median        cpu       61.06 ms +/- 0.68
+filter_green         cpu        5.77 ms +/- 0.11
+filter_contrast      cpu      111.33 ms +/- 6.29
+augmentation         cpu       30.57 ms +/- 1.65
+train_step           cpu      883.69 ms +/- 8.42
+inference            cpu      299.46 ms +/- 5.13
+GPU state after warm-up: {'pcie_gen': 4, 'pcie_width': 8, 'sm_clock_mhz': 2100, 'pstate': 'P0'}
+loading              cuda     632.03 ms +/- 7.97
+loading_cache        cpu        1.55 ms +/- 0.14
+h2d_transfer         cuda       0.80 ms +/- 0.04
+preprocessing        cuda       9.13 ms +/- 0.48
+filter_gaussian      cuda       1.63 ms +/- 0.04
+filter_median        cuda      23.65 ms +/- 2.05
+filter_green         cuda       0.06 ms +/- 0.00
+filter_contrast      cuda       2.97 ms +/- 0.03
+augmentation         cuda       5.14 ms +/- 0.58
+train_step           cuda      65.65 ms +/- 0.11
+train_step_amp       cuda      31.99 ms +/- 0.19
+inference            cuda      24.85 ms +/- 0.17
+inference_amp        cuda      13.16 ms +/- 0.11
+          stage device   mean_s    std_s  n_images   imgs_per_s  speedup_vs_cpu
+        loading    cpu 2.807752 0.008135        64 2.279404e+01             NaN
+  preprocessing    cpu 0.158187 0.001698        64 4.045841e+02             NaN
+filter_gaussian    cpu 0.016248 0.000568        64 3.938966e+03             NaN
+  filter_median    cpu 0.061056 0.000679        64 1.048217e+03             NaN
+   filter_green    cpu 0.005771 0.000109        64 1.109028e+04             NaN
+filter_contrast    cpu 0.111334 0.006289        64 5.748467e+02             NaN
+   augmentation    cpu 0.030572 0.001649        64 2.093439e+03             NaN
+     train_step    cpu 0.883689 0.008424        64 7.242370e+01             NaN
+      inference    cpu 0.299459 0.005129        64 2.137188e+02             NaN
+        loading   cuda 0.632034 0.007973        64 1.012604e+02        4.442408
+  loading_cache    cpu 0.001554 0.000142        64 4.118404e+04             NaN
+   h2d_transfer   cuda 0.000804 0.000043        64 7.955449e+04             NaN
+  preprocessing   cuda 0.009133 0.000481        64 7.007432e+03       17.320086
+filter_gaussian   cuda 0.001635 0.000037        64 3.914804e+04        9.938660
+  filter_median   cuda 0.023652 0.002055        64 2.705950e+03        2.581478
+   filter_green   cuda 0.000056 0.000003        64 1.135154e+06      102.355800
+filter_contrast   cuda 0.002969 0.000029        64 2.155884e+04       37.503635
+   augmentation   cuda 0.005143 0.000578        64 1.244357e+04        5.944078
+     train_step   cuda 0.065646 0.000110        64 9.749199e+02       13.461338
+ train_step_amp   cuda 0.031988 0.000187        64 2.000770e+03       27.625906
+      inference   cuda 0.024848 0.000168        64 2.575683e+03       12.051738
+  inference_amp   cuda 0.013158 0.000108        64 4.863998e+03       22.758870

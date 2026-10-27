@@ -54,7 +54,34 @@ Les scripts se lancent depuis la racine du repo (`python scripts/...`, `python b
 
 ## Lancer le pipeline
 
-- Baseline CPU : *(à compléter)*
-- Version optimisée GPU : *(à compléter)*
-- Profilage : `python benchmarks/profile_baseline.py [--cprofile]`
-- Environnement matériel/logiciel : `python environment/collect_env.py`
+Tout se lance depuis la racine du repo, avec le venv activé (Windows : `.venv\Scripts\activate`).
+PyTorch CUDA : `pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130`.
+
+| Tâche | Commande | Sorties |
+|---|---|---|
+| Environnement (Table 1) | `python scripts/record_env.py` | `results/environment.json` |
+| Baseline CPU (5 époques) | `python src/train_cpu.py` | `results/baseline/` |
+| Métriques baseline sur **val** (le test reste intact) | `python src/evaluate.py --config configs/baseline.yaml --run baseline --device cpu --split val` | `results/baseline/metrics_val.json` |
+| Profil cProfile (1 époque, 0 worker) | `python benchmarks/profile_baseline.py` | `results/profile_stages.json` |
+| Temps par étape CPU/GPU (64 images) | `python benchmarks/benchmark_stages.py --n 64` | `results/timing.csv` |
+| Module A : lecture / décodage / resize | `python benchmarks/profile_io.py` | `results/week1/loading_breakdown.json` |
+| line_profiler + PyTorch Profiler (CPU) | `python benchmarks/profile_line.py` | `results/week1/` |
+| Démo de synchronisation CUDA (A2.1) | `python benchmarks/sync_demo.py` | `results/sync_demo.json` |
+| Cache + alternatives de chargement | `python benchmarks/benchmark_loading.py` | `results/week2/loading.csv`, `cache.json` |
+| Run avec cache (un seul changement) | `python src/train.py --config configs/exp_cache.yaml --device cpu --run exp_cache --monitor` | `results/exp_cache/` |
+| Traitement d'image CPU vs GPU | `python benchmarks/benchmark_gpu_processing.py` | `results/week2/*.csv` |
+| Nsight Systems | `nsys profile -t cuda,nvtx --stats=true -o results/week2/nsys_preprocess python benchmarks/nsys_preprocess.py` | `results/week2/nsys_stats.txt` |
+| Figures des rapports | `python scripts/make_week_figures.py` | `results/figures/` |
+| Tests (équivalence CPU/GPU incluse) | `python -m pytest tests -v` | |
+
+Rapports : [`report/week1_report.md`](report/week1_report.md) (baseline et goulots) et
+[`report/week2_report.md`](report/week2_report.md) (refonte et accélération GPU du traitement d'image).
+Consignes de l'enseignant : [`ASSIGNMENTS.md`](ASSIGNMENTS.md), avancement : `python scripts/progress.py`.
+
+### Problèmes connus
+
+- Le GPU d'un portable démarre en P8 (lien PCIe en Gen1) : les benchmarks GPU appellent `gpu_warmup()` avant de mesurer.
+- `cupy-cuda13x` correspond à CUDA 13 ; avec un driver CUDA 12, installer `cupy-cuda12x`. Sans CuPy, seuls les variants CuPy du filtre médian sont sautés.
+- Les workers DataLoader utilisent `spawn` sous Windows : les transforms doivent être picklables (pas de lambda).
+- `tests/test_data_pipeline.py::test_prefetcher_yields_same_batches_on_device` échoue tant que `CudaPrefetcher` (semaine 3, A5.2) n'est pas écrit.
+- L'image `2T2SALA702` des métadonnées est absente de l'archive Zenodo : 2 999 images utilisées.

@@ -1,0 +1,24 @@
+{
+  "os": "Windows-11-10.0.26200-SP0",
+  "cpu": "AMD Ryzen 7 8845HS w/ Radeon 780M Graphics",
+  "cpu_physical_cores": 8,
+  "cpu_logical_threads": 16,
+  "ram_gb": 16,
+  "gpu": {
+    "name": "NVIDIA GeForce RTX 4070 Laptop GPU",
+    "vram_gb": 8.6,
+    "compute_capability": "8.9",
+    "sm_count": 36,
+    "driver": "592.82"
+  },
+  "python": "3.14.6",
+  "torch": "2.14.1+cu130",
+  "cuda": "13.0",
+  "cudnn": 92400,
+  "torchvision": "0.29.1+cu130",
+  "numpy": "2.5.2",
+  "opencv": "5.0.0",
+  "scikit_learn": "1.9.1",
+  "pillow": "12.3.0",
+  "torch_cpu_threads": 8
+}
