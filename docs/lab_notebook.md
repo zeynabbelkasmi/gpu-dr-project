@@ -92,3 +92,17 @@ Explanation:          cosine brings the lr to 0 where the no-schedule run diverg
                       Same config, same seeds: 0.577 vs 0.556 -> GPU non-determinism (cudnn benchmark, atomics).
 Decision:             final = fast pipeline + ResNet-18 + cosine: pooled 6 runs val F1 0.566+/-0.021, 2.41 s/epoch
                       (86x the Colab CPU, ~22x the Week 2 laptop CPU). Test set untouched until A7.8.
+
+### A6.7 / A6.9 Rounds 2-3: budget, resolution, batch size, architecture (3 seeds)          date: 2026-10-27
+Config / commit:      configs/exp_r18_cos10/15, res320, bs64/128, effb0, r50, compile_ro, res320_bs64, res384_bs64
+Question:             can the 224 px ResNet-18 + cosine design (val F1 0.566 +/- 0.021) be improved?
+Command:              python scripts/week3_experiments.py --seeds 42,43,44 --only ...
+Result:               val F1: 10 ep 0.538, 15 ep 0.547, 320 px 0.586, bs64 0.575, bs128 0.553, EfficientNet-B0 0.565,
+                      ResNet-50 0.567, CUDA graphs 0.551 (no speed gain), 320 px + bs64 0.591, 384 px + bs64 0.589.
+                      Final optimized (320 px + bs64) re-run 0.572; pooled 6 runs 0.582 +/- 0.024, 4.48 s/epoch.
+Surprise:             three architectures from 4 M to 24 M parameters give the same F1 at 224 px
+Explanation:          longer budgets memorize the 2,099 training images (train acc 0.98); the plateau at 224 px
+                      comes from the data, and only resolution (small lesions) moves it: +0.018 over 12 runs,
+                      not significant at 5 %. 384 px no better than 320 px.
+Decision:             final = 320 px + batch 64 (val F1 0.582, 4.48 s/epoch); 224 px kept as the fast variant
+                      (0.566, 2.41 s/epoch). Test set still untouched (A7.8).

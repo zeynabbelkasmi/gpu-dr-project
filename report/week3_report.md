@@ -17,12 +17,17 @@ the Week 1–2 machine (RTX 4070 Laptop, 8-core Ryzen): cross-week comparisons a
 | Same model on the GPU (device effect only) | 7.83 s | 25.6× | 0.325 |
 | Fastest pipeline, reference CNN (`optimized_cnn`) | 1.48 s | **135×** | 0.305 |
 | ↳ + CUDA graphs (`exp_compile_ro`, cold epoch 22.8 s) | 0.90 s | **222×** | 0.328 |
-| **Final design (`optimized`): fast pipeline + ResNet-18 + cosine schedule** | **2.34 s** | **86×** | **0.556 ± 0.010** (3 seeds) |
+| Fast design: fast pipeline + ResNet-18 + cosine, 224 px, batch 32 | 2.41 s | 83× | 0.566 ± 0.021 (6 runs) |
+| **Final design (`optimized`): same, 320 px, batch 64** | **4.48 s** | **45×** | **0.582 ± 0.024** (6 runs) |
 
 - The pipeline work (A5 + the GPU-resident data path) makes the reference CNN **5.3× faster than the
   same model on the same GPU** (7.83 → 1.48 s), and 8.7× with CUDA graphs.
-- The model and recipe work (A6.6, A6.9) raises validation macro-F1 from **0.33 to 0.56–0.58** while an
-  epoch of the larger model costs 2.34 s, 3.6× less than the same ResNet-18 on the default GPU pipeline (8.49 s).
+- The model and recipe work (A6.6, A6.9) raises validation macro-F1 from **0.33 to 0.57** at 224 px; an
+  epoch of the larger model costs 2.41 s, 3.5× less than the same ResNet-18 on the default GPU pipeline (8.49 s).
+- Rounds 2–3 (section 4.4): three architectures from 4 M to 24 M parameters all plateau at **F1 ≈ 0.565**
+  at 224 px; only a higher input resolution moves it, to **0.582 ± 0.024** at 320 px, for 1.9× the epoch
+  time. The gain is consistent across 12 runs at ≥ 320 px but smaller than one standard deviation.
+  Week 1 baseline for reference: F1 0.350 (reference CNN, laptop CPU).
 - Main lesson: **every optimization only paid when it targeted the current bottleneck.** AMP,
   `channels_last` and `torch.compile` gave nothing while the run was input-bound, and 2.3× once it was
   compute-bound (section 4.2).
@@ -125,10 +130,11 @@ seed 42 reached 0.63 train accuracy at epoch 4 while validation dropped from 0.5
 | `exp_r18_regul` | weight decay 1e-4 + label smoothing 0.1 | 0.501 ± 0.009 | 0.480 ± 0.015 | 2.48 s |
 | `exp_r18_recipe` | all four | 0.580 ± 0.015 | 0.564 ± 0.018 | 2.63 s |
 | `exp_r18_recipe10` | all four, 10 epochs | 0.567 ± 0.015 | 0.563 ± 0.016 | 2.64 s |
-| **`optimized` (final = fast pipeline + ResNet-18 + cosine)** | re-run of `exp_r18_cosine` | 0.563 ± 0.008 | 0.556 ± 0.010 | 2.34 s |
+| `optimized` at 224 px (fast pipeline + ResNet-18 + cosine) | re-run of `exp_r18_cosine` | 0.563 ± 0.008 | 0.556 ± 0.010 | 2.34 s |
 
-The first row was overwritten in `results/optimized*` when the final config was re-run; its numbers are
-the ones printed by `week3_experiments.py` before the change (same table format).
+`results/optimized*` was re-run twice (no schedule, then cosine at 224 px, then the final 320 px
+config of section 4.4); the first and last-but-one rows above are the numbers printed by
+`week3_experiments.py` before each re-run (same table format).
 
 - **Cosine is the only change that helps** (+0.07 F1 over the no-schedule run). The learning rate goes
   to zero over the last epochs, exactly where the no-schedule run diverged.
@@ -141,6 +147,44 @@ the ones printed by `week3_experiments.py` before the change (same table format)
   additions in the backward pass make GPU training non-deterministic. Pooling the 6 runs:
   **val F1 0.566 ± 0.021, val acc 0.571 ± 0.017, 2.41 ± 0.08 s per epoch.** With n = 3 the gain of cosine
   is consistent in direction but not statistically established; we state it as such.
+
+### 4.4 Rounds 2–3: budget, resolution, batch size, architecture (3 seeds, one change at a time)
+
+Each run changes one key of the 224 px cosine configuration (reference: val F1 0.566 ± 0.021, pooled 6 runs).
+
+| Run (mean ± std, n = 3) | Change | Val acc | Val macro-F1 | Steady epoch |
+|---|---|---|---|---|
+| `exp_r18_cos10` | 10 epochs | 0.547 ± 0.015 | 0.538 ± 0.011 | 2.31 s |
+| `exp_r18_cos15` | 15 epochs | 0.551 ± 0.012 | 0.547 ± 0.011 | 2.49 s |
+| `exp_r18_res320` | 320×320 input | 0.587 ± 0.019 | 0.586 ± 0.020 | 4.75 s |
+| `exp_r18_bs64` | batch 64 (A6.7) | 0.578 ± 0.002 | 0.575 ± 0.007 | 2.32 s |
+| `exp_r18_bs128` | batch 128 (A6.7) | 0.562 ± 0.006 | 0.553 ± 0.006 | 2.25 s |
+| `exp_effb0` | EfficientNet-B0 (4.0 M params, 0.8 GFLOPs) | 0.571 ± 0.004 | 0.565 ± 0.002 | 4.90 s |
+| `exp_r50` | ResNet-50 (23.5 M params, 8.2 GFLOPs) | 0.567 ± 0.003 | 0.567 ± 0.004 | 7.16 s |
+| `exp_r18_compile_ro` | CUDA graphs on ResNet-18 | 0.564 ± 0.010 | 0.551 ± 0.023 | 2.40 s |
+| `exp_r18_res320_bs64` | 320 px + batch 64 | 0.592 ± 0.028 | 0.591 ± 0.028 | 4.38 s |
+| `exp_r18_res384_bs64` | 384 px + batch 64 | 0.593 ± 0.005 | 0.589 ± 0.003 | 6.52 s |
+| **`optimized` (final)** | **320 px + batch 64**, re-run | 0.581 ± 0.011 | 0.572 ± 0.022 | 4.58 s |
+
+- **A longer budget hurts.** Training accuracy reaches 0.97–0.98 at 10–15 epochs while validation
+  stays at 0.52–0.56: with 2,099 images ResNet-18 memorizes the training set. 5 epochs with a cosine
+  schedule is the best budget we measured.
+- **The architecture is not the limit.** EfficientNet-B0, ResNet-18 and ResNet-50 (4 M to 24 M parameters)
+  give the same F1 (0.565–0.567) at 224 px; the bigger models only cost 2–3× more time. At this resolution
+  the data, not the model, bounds the score.
+- **Resolution is the only lever that moved it.** All 12 runs at ≥ 320 px average **0.584 ± 0.019**,
+  against 0.566 ± 0.021 for the 6 runs at 224 px (+0.018, Welch t ≈ 1.8: consistent but not significant at
+  5 %). 384 px gives nothing more than 320 px for 1.5× the time: DR lesions (microaneurysms, exudates)
+  are small, and 224 px also squashes 68 % of the images (Week 1, sec. 3).
+- **Batch size (A6.7):** 64 is as good as 32 or slightly better (0.575 ± 0.007), 128 slightly worse at the
+  same learning rate (fewer optimizer steps in a 5-epoch budget); throughput is the same because the run
+  is no longer limited by per-step overhead. We keep 64.
+- **CUDA graphs do not speed up ResNet-18** (2.40 vs 2.34 s, cold epoch 20.3 s): each kernel does enough
+  work that launch cost is negligible, unlike the reference CNN (section 4.2, point 8).
+- **Final configuration:** 320 px + batch 64. `optimized` and `exp_r18_res320_bs64` are the same config;
+  pooled 6 runs: **val F1 0.582 ± 0.024, val acc 0.586 ± 0.020, 4.48 ± 0.17 s per epoch**, peak GPU
+  memory 3.3 GB. Trade-off stated plainly: +0.016 F1 over the 224 px design for 1.9× the epoch time; the
+  224 px design remains the "fast" variant (2.41 s per epoch).
 
 ## 5. A5.9 and A5.10: precompute or not, and bytes over PCIe
 
@@ -176,21 +220,23 @@ A5.11 and A6.11 are answered in `docs/week3_notes.md`.
 ## 7. Limitations and threats to validity
 
 - **The CPU reference is weak.** Colab gives one physical core, so 200 s per epoch on Colab vs 51.6 s
-  steady for the same `exp_cache` run on the 8-core Week 2 laptop. Against that laptop CPU the final
-  design is ~22× faster per epoch and `optimized_cnn` ~35×; both machines must be named whenever a
-  speedup is quoted.
+  steady for the same `exp_cache` run on the 8-core Week 2 laptop. Against that laptop CPU the 224 px
+  design is ~21× faster per epoch, the final 320 px design ~12× and `optimized_cnn` ~35×; both machines
+  must be named whenever a speedup is quoted.
+- **Many configurations were compared on the same 450 validation images** (about 20 configurations ×
+  3 seeds). The selected configuration may be slightly favoured by chance; the test set, untouched so
+  far, will give the unbiased number (A7.8).
 - **GPU differs from Weeks 1–2** (T4 here, RTX 4070 Laptop before).
 - Pipeline runs are single-seed; their time is reliable (±0.1 s between seeds in section 4.3), their
   accuracy is not used.
-- Not done yet: the A5.8 `num_workers` sweep and the A6.7 batch-size sweep
-  (`benchmarks/sweep_loader.py`; workers are irrelevant once the data is GPU-resident, batch size is
-  not), the profiler trace confirming the prefetcher overlap and the moved bottleneck (A7).
+- Not done: the A5.8 `num_workers` sweep (`benchmarks/sweep_loader.py`): irrelevant for the final
+  design, which has no DataLoader; it only matters for the DataLoader path. Also not done: the profiler
+  trace confirming the prefetcher overlap and the moved bottleneck (A7).
 - The CPU run used 2 epochs (one cold + one steady) to keep it to ~9 minutes (including a 108 s cache build).
 
 ## 8. Next steps (Week 4)
 
-A6.7 batch-size sweep on the final config; A7 GPU profiling of `optimized` (where does the 2.3 s go
-now?); ablation A7.6 (switch off one optimization at a time from `optimized`); test-set evaluation
+A7 GPU profiling of `optimized` (where do the 4.5 s go now?); ablation A7.6 (switch off one optimization at a time from `optimized`); test-set evaluation
 once for the baseline and once for `optimized` (A7.8).
 
 ## 9. Reproduce (Colab, T4)
@@ -199,5 +245,7 @@ once for the baseline and once for `optimized` (A7.8).
 python -m pytest tests/test_data_pipeline.py -q
 python scripts/week3_experiments.py                                   # pipeline runs, seed 42
 python scripts/week3_experiments.py --seeds 42,43,44 --only optimized,exp_r18_lr3e4_gpu,exp_r18_augment_gpu,exp_r18_cosine_gpu,exp_r18_regul_gpu,exp_r18_recipe_gpu,exp_r18_recipe10_gpu
+python scripts/week3_experiments.py --seeds 42,43,44 --only exp_r18_cos10_gpu,exp_r18_cos15_gpu,exp_r18_res320_gpu,exp_r18_bs64_gpu,exp_r18_bs128_gpu,exp_effb0_gpu,exp_r50_gpu,exp_r18_compile_ro_gpu
+python scripts/week3_experiments.py --seeds 42,43,44 --only exp_r18_res320_bs64_gpu,exp_r18_res384_bs64_gpu
 python -m src.model                                                   # parameters and FLOPs
 ```

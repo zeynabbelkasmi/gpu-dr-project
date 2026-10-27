@@ -6,11 +6,11 @@ data:
   root: data/dr_dataset     # teacher layout; unused while split_csv is set
   split_csv: splits/splits.csv   # team split (StratifiedGroupKFold, patient-level, seed 42, 70/15/15).
                                  # Images resolved through src/paths.py (FDR26_DATA). Same split for every run.
-  image_size: [224, 224]
+  image_size: [320, 320]    # round 3: +0.025 val F1 (9 runs >= 320 px), 384 no better
   num_classes: 5
   train_frac: 0.70
   val_frac: 0.15
-  batch_size: 32            # A6.7: tune (throughput, memory, val accuracy)
+  batch_size: 64            # A6.7: best of 32/64/128 (round 2)
   num_workers: 2            # unused with gpu_resident (no DataLoader)
   cache_dir: data/cache
   gpu_resident: true        # whole split in GPU memory: no loader, no per-epoch PCIe copy

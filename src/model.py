@@ -42,11 +42,33 @@ def resnet18(num_classes, pretrained=True):
     return m
 
 
+def resnet50(num_classes, pretrained=True):
+    """Round 2: deeper residual network (23.5 M parameters, 8.2 GFLOPs with a 5-class head), same ImageNet recipe as ResNet-18."""
+    import torchvision
+    weights = torchvision.models.ResNet50_Weights.IMAGENET1K_V2 if pretrained else None
+    m = torchvision.models.resnet50(weights=weights)
+    m.fc = nn.Linear(m.fc.in_features, num_classes)
+    return m
+
+
+def efficientnet_b0(num_classes, pretrained=True):
+    """Round 2: EfficientNet-B0 (4.0 M parameters, 0.8 GFLOPs with a 5-class head), better ImageNet accuracy per FLOP than
+    ResNet-18; depthwise convolutions are less Tensor-Core friendly, so it may not be faster."""
+    import torchvision
+    weights = torchvision.models.EfficientNet_B0_Weights.IMAGENET1K_V1 if pretrained else None
+    m = torchvision.models.efficientnet_b0(weights=weights)
+    m.classifier[-1] = nn.Linear(m.classifier[-1].in_features, num_classes)
+    return m
+
+
+MODELS = {"resnet18": resnet18, "resnet50": resnet50, "efficientnet_b0": efficientnet_b0}
+
+
 def build_model(name, num_classes, pretrained=True):
     if name == "reference_cnn":
         return ReferenceCNN(num_classes)
-    if name == "resnet18":
-        return resnet18(num_classes, pretrained)
+    if name in MODELS:
+        return MODELS[name](num_classes, pretrained)
     raise ValueError(f"unknown model: {name}")
 
 
@@ -77,7 +99,7 @@ def count_flops(model, size=(224, 224)):
 
 
 if __name__ == "__main__":
-    for name in ("reference_cnn", "resnet18"):
+    for name in ("reference_cnn", "resnet18", "efficientnet_b0", "resnet50"):
         m = build_model(name, 5, pretrained=False)
         print(f"{name:14s} params={count_params(m) / 1e6:6.2f} M  "
               f"FLOPs={count_flops(m) / 1e9:6.2f} G per 224x224 image")

@@ -41,6 +41,18 @@ RUNS = [
     ("exp_r18_recipe_gpu", "configs/exp_r18_recipe.yaml", "cuda"),      # all four together
     ("exp_r18_recipe10_gpu", "configs/exp_r18_recipe10.yaml", "cuda"),  # same, 10 epochs
     ("exp_compile_ro_gpu", "configs/exp_compile_ro.yaml", "cuda"),  # + CUDA graphs (optional, last)
+    # Round 2, one change at a time on top of the final optimized.yaml
+    ("exp_r18_cos10_gpu", "configs/exp_r18_cos10.yaml", "cuda"),
+    ("exp_r18_cos15_gpu", "configs/exp_r18_cos15.yaml", "cuda"),
+    ("exp_r18_res320_gpu", "configs/exp_r18_res320.yaml", "cuda"),
+    ("exp_r18_bs64_gpu", "configs/exp_r18_bs64.yaml", "cuda"),
+    ("exp_r18_bs128_gpu", "configs/exp_r18_bs128.yaml", "cuda"),
+    ("exp_effb0_gpu", "configs/exp_effb0.yaml", "cuda"),
+    ("exp_r50_gpu", "configs/exp_r50.yaml", "cuda"),
+    ("exp_r18_compile_ro_gpu", "configs/exp_r18_compile_ro.yaml", "cuda"),
+    # Round 3: combinations of the round-2 winners
+    ("exp_r18_res320_bs64_gpu", "configs/exp_r18_res320_bs64.yaml", "cuda"),
+    ("exp_r18_res384_bs64_gpu", "configs/exp_r18_res384_bs64.yaml", "cuda"),
 ]
 ORDER = [r for r, _, _ in RUNS]
 
@@ -63,7 +75,7 @@ def row(base, seed, d):
             "channels_last": h.get("channels_last", False), "compile": h.get("compile", False),
             "augment": h.get("augment", False), "lr": t["lr"],
             "scheduler": t.get("scheduler") or "none", "epochs": t["epochs"],
-            "batch_size": cfg["data"]["batch_size"],
+            "batch_size": cfg["data"]["batch_size"], "image_size": cfg["data"]["image_size"][0],
             "setup_time_s": h["setup_time_s"], "cold_epoch_s": h["cold_epoch_s"],
             "steady_epoch_s": h["steady_epoch_s"], "train_imgs_per_s": last["train_imgs_per_s"],
             "gpu_peak_mem_mb": last["gpu_peak_mem_mb"],
@@ -129,7 +141,7 @@ def main():
     agg.columns = [f"{c}_{s}" for c, s in agg.columns]
     agg.to_csv("results/week3_table_seeds.csv")
     pd.set_option("display.width", 250)
-    show = ["run", "seed", "model", "precision", "augment", "lr", "scheduler", "epochs",
+    show = ["run", "seed", "model", "batch_size", "augment", "lr", "scheduler", "epochs",
             "steady_epoch_s", "train_imgs_per_s", "gpu_peak_mem_mb", "best_val_acc",
             "val_f1_at_best", "best_epoch"] + (["speedup_vs_cpu"] if "speedup_vs_cpu" in df else [])
     print(df[show].to_string(index=False, float_format=lambda v: f"{v:.3f}"))
