@@ -1,0 +1,76 @@
+Timer unit: 0.001 s
+
+Total time: 2.58234 s
+File: C:\Users\zeyna\gpu-dr-project\src\data_loader.py
+Function: DRDataset.load at line 198
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   198                                               def load(self, idx):
+   199                                                   """Decode + resize only (the 'loading' stage). Returns HWC uint8."""
+   200        64          0.1      0.0      0.0          if self.cache is not None:
+   201                                                       return np.asarray(self.cache[idx])
+   202        64          0.1      0.0      0.0          path, _ = self.items[idx]
+   203       128         87.5      0.7      3.4          with Image.open(path) as im:
+   204        64       2480.2     38.8     96.0              im = im.convert("RGB").resize(self.image_size, Image.Resampling.BILINEAR)
+   205        64         14.6      0.2      0.6              return np.asarray(im, dtype=np.uint8)
+
+Total time: 0.229952 s
+File: C:\Users\zeyna\gpu-dr-project\src\preprocess_cpu.py
+Function: preprocess_image at line 44
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    44                                           def preprocess_image(img, cfg):
+    45                                               """Full CPU preprocessing for one RGB float [0,1] image -> CHW array."""
+    46        64          0.1      0.0      0.1      p = cfg["preprocess"]
+    47        64          0.0      0.0      0.0      x = img
+    48        64          0.1      0.0      0.1      if p.get("gamma", 1.0) != 1.0:
+    49                                                   x = apply_gamma(x, p["gamma"])
+    50        64          0.1      0.0      0.0      if p.get("clahe"):
+    51        64        165.2      2.6     71.8          x = apply_clahe(x)
+    52        64          0.1      0.0      0.0      if p.get("circular_crop"):
+    53        64         26.8      0.4     11.7          x = circular_crop(x)
+    54        64          0.1      0.0      0.0      if p.get("normalize"):
+    55        64         35.6      0.6     15.5          x = normalize(x)
+    56        64          1.7      0.0      0.8      return x.transpose(2, 0, 1).astype(np.float32)
+
+Total time: 0.164591 s
+File: C:\Users\zeyna\gpu-dr-project\src\preprocess_cpu.py
+Function: apply_clahe at line 23
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    23                                           def apply_clahe(img, clip=2.0, grid=8):
+    24                                               """CLAHE on the L channel of LAB. Input RGB float [0,1], same range out."""
+    25        64          9.2      0.1      5.6      u8 = (img * 255).astype(np.uint8)
+    26        64         94.6      1.5     57.5      lab = cv2.cvtColor(u8, cv2.COLOR_RGB2LAB)
+    27        64          2.3      0.0      1.4      l, a, b = cv2.split(lab)
+    28        64         15.1      0.2      9.2      cl = cv2.createCLAHE(clipLimit=clip, tileGridSize=(grid, grid)).apply(l)
+    29        64         33.0      0.5     20.0      out = cv2.cvtColor(cv2.merge((cl, a, b)), cv2.COLOR_LAB2RGB)
+    30        64         10.5      0.2      6.4      return out.astype(np.float32) / 255.0
+
+Total time: 0.026473 s
+File: C:\Users\zeyna\gpu-dr-project\src\preprocess_cpu.py
+Function: circular_crop at line 13
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    13                                           def circular_crop(img):
+    14                                               """Zero out everything outside the fundus circle."""
+    15        64          0.2      0.0      0.7      h, w = img.shape[:2]
+    16        64          0.6      0.0      2.3      mask = np.zeros((h, w), np.uint8)
+    17        64          0.8      0.0      2.9      cv2.circle(mask, (w // 2, h // 2), max(min(h, w) // 2 - 2, 1), 255, -1)
+    18        64          1.9      0.0      7.1      out = img.copy()
+    19        64         23.0      0.4     86.8      out[mask == 0] = 0
+    20        64          0.1      0.0      0.2      return out
+
+Total time: 0.035388 s
+File: C:\Users\zeyna\gpu-dr-project\src\preprocess_cpu.py
+Function: normalize at line 40
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    40                                           def normalize(img):
+    41        64         35.4      0.6    100.0      return (img - MEAN) / STD
+

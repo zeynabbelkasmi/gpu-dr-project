@@ -1,0 +1,17 @@
+op,n_images,max_abs,mean_abs,frac_bit_exact,frac_within_1_level (1/255),luminance_corr,max_abs_levels,max_abs_interior
+clahe,128,0.0,0.0,1.0,1.0,1.0,0.0,
+clahe_luma (GPU variant),128,0.18431371450424194,0.019007429485183986,0.006772670616098001,0.08739710178504996,0.9986127029356429,47.0,
+circular_crop,128,0.0,0.0,1.0,1.0,,,
+normalize,128,0.0,0.0,1.0,1.0,,,
+crop+normalize,128,0.0,0.0,1.0,1.0,,,
+crop+normalize fused (GPU variant),128,2.384185791015625e-07,2.6490161308654216e-08,0.5505804464119632,1.0,,,
+preprocess_full,128,0.0,0.0,1.0,1.0,,,
+preprocess_full fused (GPU variant),128,2.384185791015625e-07,3.1740328811214515e-08,0.4987449386492878,1.0,,,
+gaussian_blur,128,2.384185791015625e-07,1.4265812867176898e-08,0.6642709848832111,1.0,,,
+gaussian_blur 2D kernel (GPU variant),128,3.5762786865234375e-07,2.2581371841762193e-08,0.5587423415411086,1.0,,,
+median_filter,128,0.0,0.0,1.0,1.0,,,
+green_channel,128,0.0,0.0,1.0,1.0,,,
+contrast_stretch,128,3.598906950230685e-08,6.245481792917011e-09,0.402337054817044,1.0,,,
+augmentation,128,1.7344951629638672e-05,8.486903230222424e-08,0.5407462606624681,1.0,,,1.6361474990844727e-05
+median_filter CuPy RawKernel (GPU variant),128,0.0,0.0,1.0,1.0,,,
+median_filter cupyx.ndimage (GPU variant),128,0.0,0.0,1.0,1.0,,,

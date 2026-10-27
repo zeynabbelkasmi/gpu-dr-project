@@ -1,0 +1,37 @@
+{
+  "n_train_images": 2099,
+  "image_size": [
+    224,
+    224
+  ],
+  "build_workers": 8,
+  "build_time_s (first run)": 17.423993299999893,
+  "reopen_time_s (later runs)": 0.0018285999999534397,
+  "cache_file_mb": 315.9584,
+  "source_jpeg_mb": 1170.880863,
+  "cache_vs_source_size": 0.26984675382810486,
+  "full_dataset_cache_mb (2999 images)": 451.433472,
+  "epoch_loading": {
+    "decode, 0 workers": {
+      "epoch_s": 88.2198026000001,
+      "images": 2080,
+      "imgs_per_s": 23.577472842814974
+    },
+    "decode, 2 workers (baseline)": {
+      "epoch_s": 56.42923350000001,
+      "images": 2080,
+      "imgs_per_s": 36.86032701472012
+    },
+    "cache, 0 workers": {
+      "epoch_s": 0.3442073999999593,
+      "images": 2080,
+      "imgs_per_s": 6042.868340425703
+    },
+    "cache, 2 workers": {
+      "epoch_s": 4.493591599999945,
+      "images": 2080,
+      "imgs_per_s": 462.88140649008363
+    }
+  },
+  "bit_exact_vs_decode": true
+}

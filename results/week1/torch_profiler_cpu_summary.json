@@ -1,0 +1,26 @@
+{
+  "batch_size": 32,
+  "steps": 6,
+  "torch_threads": 8,
+  "per_step_ms": {
+    "forward": 200.02954999999997,
+    "backward": 279.11435000000006,
+    "optimizer_step": 2.372599999999986
+  },
+  "share_of_step": {
+    "forward": 0.41541577495267545,
+    "backward": 0.5796568757249233,
+    "optimizer_step": 0.004927349322401177
+  },
+  "imgs_per_s_compute_only": 66.45670501426223,
+  "top_self_ops_ms_per_step": {
+    "aten::convolution_backward": 187.34150000000048,
+    "aten::mkldnn_convolution": 118.80631666666672,
+    "aten::max_pool2d_with_indices": 57.93620000000002,
+    "aten::threshold_backward": 38.91728333333323,
+    "aten::max_pool2d_with_indices_backward": 28.283599999999964,
+    "aten::fill_": 21.760233333333264,
+    "aten::clamp_min_": 19.947166666666632,
+    "aten::empty": 1.125266666666561
+  }
+}

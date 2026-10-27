@@ -21,3 +21,9 @@ Thumbs.db
 results/**/*.npy
 results/**/*.pt
 checkpoints/
+
+# Traces de profilage lourdes (les résumés .txt/.json/.csv restent versionnés)
+results/**/trace.json
+*.nsys-rep
+*.sqlite
+results/_profile_cfg.yaml

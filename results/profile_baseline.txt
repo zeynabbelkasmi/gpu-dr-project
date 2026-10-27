@@ -1,0 +1,48 @@
+         3464308 function calls (3432841 primitive calls) in 149.631 seconds
+
+   Ordered by: cumulative time
+   List reduced from 7392 to 40 due to restriction <40>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000  149.636  149.636 C:\Users\zeyna\gpu-dr-project\src\train.py:85(main)
+        2    3.149    1.574  146.374   73.187 C:\Users\zeyna\gpu-dr-project\src\train.py:24(run_epoch)
+       82    0.002    0.000  105.370    1.285 C:\Users\zeyna\gpu-dr-project\.venv\Lib\site-packages\torch\utils\data\dataloader.py:720(__next__)
+       82    0.147    0.002  105.358    1.285 C:\Users\zeyna\gpu-dr-project\.venv\Lib\site-packages\torch\utils\data\dataloader.py:783(_next_data)
+       80    0.011    0.000  105.209    1.315 C:\Users\zeyna\gpu-dr-project\.venv\Lib\site-packages\torch\utils\data\_utils\fetch.py:49(fetch)
+     2530    0.242    0.000  104.972    0.041 C:\Users\zeyna\gpu-dr-project\src\data_loader.py:207(__getitem__)
+     2530    3.927    0.002   97.910    0.039 C:\Users\zeyna\gpu-dr-project\src\data_loader.py:198(load)
+     2530    0.028    0.000   50.061    0.020 C:\Users\zeyna\gpu-dr-project\.venv\Lib\site-packages\PIL\Image.py:1017(convert)
+     2530    0.044    0.000   42.102    0.017 C:\Users\zeyna\gpu-dr-project\.venv\Lib\site-packages\PIL\Image.py:2329(resize)
+     2530   41.980    0.017   41.980    0.017 {method 'resize' of 'ImagingCore' objects}
+     5060    0.299    0.000   40.662    0.008 C:\Users\zeyna\gpu-dr-project\.venv\Lib\site-packages\PIL\ImageFile.py:291(load)
+    23196   39.437    0.002   39.437    0.002 {method 'decode' of 'ImagingDecoder' objects}
+       65    0.001    0.000   19.755    0.304 C:\Users\zeyna\gpu-dr-project\.venv\Lib\site-packages\torch\_tensor.py:566(backward)
+       65    0.002    0.000   19.754    0.304 C:\Users\zeyna\gpu-dr-project\.venv\Lib\site-packages\torch\autograd\__init__.py:255(backward)
+       65    0.001    0.000   19.750    0.304 C:\Users\zeyna\gpu-dr-project\.venv\Lib\site-packages\torch\autograd\graph.py:1059(_engine_run_backward)
+       65   19.748    0.304   19.748    0.304 {method 'run_backward' of 'torch._C._EngineBase' objects}
+ 1520/160    0.009    0.000   17.839    0.111 C:\Users\zeyna\gpu-dr-project\.venv\Lib\site-packages\torch\nn\modules\module.py:1779(_wrapped_call_impl)
+ 1520/160    0.014    0.000   17.837    0.111 C:\Users\zeyna\gpu-dr-project\.venv\Lib\site-packages\torch\nn\modules\module.py:1787(_call_impl)
+       80    0.001    0.000   17.831    0.223 C:\Users\zeyna\gpu-dr-project\src\model.py:22(forward)
+      160    0.008    0.000   17.827    0.111 C:\Users\zeyna\gpu-dr-project\.venv\Lib\site-packages\torch\nn\modules\container.py:254(forward)
+      240    0.002    0.000   10.320    0.043 C:\Users\zeyna\gpu-dr-project\.venv\Lib\site-packages\torch\nn\modules\conv.py:564(forward)
+      240    0.002    0.000   10.318    0.043 C:\Users\zeyna\gpu-dr-project\.venv\Lib\site-packages\torch\nn\modules\conv.py:546(_conv_forward)
+      240   10.316    0.043   10.316    0.043 {built-in method torch.conv2d}
+     2530    0.014    0.000    9.379    0.004 C:\Users\zeyna\gpu-dr-project\.venv\Lib\site-packages\PIL\Image.py:1356(copy)
+     2530    9.303    0.004    9.303    0.004 {method 'copy' of 'ImagingCore' objects}
+     2530    0.029    0.000    6.074    0.002 C:\Users\zeyna\gpu-dr-project\src\data_loader.py:231(__call__)
+     2530    0.044    0.000    6.035    0.002 C:\Users\zeyna\gpu-dr-project\src\preprocess_cpu.py:44(preprocess_image)
+      240    0.003    0.000    5.848    0.024 C:\Users\zeyna\gpu-dr-project\.venv\Lib\site-packages\torch\nn\modules\pooling.py:222(forward)
+      240    0.002    0.000    5.845    0.024 C:\Users\zeyna\gpu-dr-project\.venv\Lib\site-packages\torch\_jit_internal.py:627(fn)
+      240    0.001    0.000    5.843    0.024 C:\Users\zeyna\gpu-dr-project\.venv\Lib\site-packages\torch\nn\functional.py:814(_max_pool2d)
+      240    5.841    0.024    5.841    0.024 {built-in method torch.max_pool2d}
+     2530    0.263    0.000    3.382    0.001 C:\Users\zeyna\gpu-dr-project\src\preprocess_cpu.py:23(apply_clahe)
+   3855/7    0.010    0.000    2.906    0.415 <frozen importlib._bootstrap>:1360(_find_and_load)
+   1030/7    0.006    0.000    2.905    0.415 <frozen importlib._bootstrap>:1308(_find_and_load_unlocked)
+    996/6    0.004    0.000    2.902    0.484 <frozen importlib._bootstrap>:914(_load_unlocked)
+    991/6    0.003    0.000    2.902    0.484 <frozen importlib._bootstrap_external>:753(exec_module)
+  2913/13    0.003    0.000    2.899    0.223 <frozen importlib._bootstrap>:483(_call_with_frames_removed)
+   1374/6    0.178    0.000    2.897    0.483 {built-in method builtins.exec}
+   892/72    0.002    0.000    2.750    0.038 {built-in method builtins.__import__}
+6182/5264    0.015    0.000    2.733    0.001 <frozen importlib._bootstrap>:1409(_handle_fromlist)
+
+

@@ -1,0 +1,50 @@
+C:\Users\zeyna\gpu-dr-project\src\data_loader.py:61: UserWarning: 1 image(s) listée(s) dans les métadonnées mais absente(s) : ['2T2SALA702'] -> ignorée(s)
+  warnings.warn(msg + " -> ignorée(s)")
+{
+  "warm (train files)": {
+    "n_images": 200,
+    "per_image_ms": {
+      "read": 0.47955300002286094,
+      "decode": 24.42829500001153,
+      "resize": 19.755530999977964,
+      "to_array": 0.1815055000133725
+    },
+    "share": {
+      "read": 0.010693594272108914,
+      "decode": 0.5447286858325505,
+      "resize": 0.44053031288254585,
+      "to_array": 0.0040474070127947005
+    },
+    "total_per_image_ms": 44.84488450002573,
+    "mean_file_mb": 0.64921525,
+    "read_mb_per_s": 1353.7924900251924,
+    "decode_mpix_per_s (max frame size)": 428.84695800484866,
+    "decoded_frame_mb (uint8 RGB, full res)": 31.428,
+    "output_mb (224x224x3 uint8)": 0.150528,
+    "process_read_bytes": 130266526,
+    "imgs_per_s_single_thread": 22.29908742432877
+  },
+  "first touch (test files, bytes only)": {
+    "n_images": 200,
+    "per_image_ms": {
+      "read": 5.544998499983649,
+      "decode": 26.68294900000319,
+      "resize": 21.954612999993515,
+      "to_array": 0.18589700001029996
+    },
+    "share": {
+      "read": 0.10198925544254409,
+      "decode": 0.49077995269606056,
+      "resize": 0.4038115850536552,
+      "to_array": 0.0034192068077401666
+    },
+    "total_per_image_ms": 54.368457499990654,
+    "mean_file_mb": 0.83617069,
+    "read_mb_per_s": 150.79727974722908,
+    "decode_mpix_per_s (max frame size)": 392.61027707240106,
+    "decoded_frame_mb (uint8 RGB, full res)": 31.428,
+    "output_mb (224x224x3 uint8)": 0.150528,
+    "process_read_bytes": 167234138,
+    "imgs_per_s_single_thread": 18.39301767941774
+  }
+}

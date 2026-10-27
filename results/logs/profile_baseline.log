@@ -1,0 +1,14 @@
+C:\Users\zeyna\gpu-dr-project\src\data_loader.py:61: UserWarning: 1 image(s) listée(s) dans les métadonnées mais absente(s) : ['2T2SALA702'] -> ignorée(s)
+  warnings.warn(msg + " -> ignorée(s)")
+[train:profile_baseline] device=cpu gpu_preprocess=False augment=False splits={'train': 2099, 'val': 450, 'test': 450}
+epoch 0: train_loss=1.5832 train_acc=0.2317 val_acc=0.2889 val_f1=0.1850 train_time=121.16s (17 img/s)
+[train:profile_baseline] best val_acc=0.2889; wall=149.6s; history -> results\profile_baseline/history.json
+loading (decode+resize)         97.91s   65.4%
+preprocessing (total)            6.03s    4.0%
+  clahe                          3.38s    2.3%
+  circular_crop                  1.01s    0.7%
+  normalize                      1.52s    1.0%
+forward                         17.84s   11.9%
+backward                        19.75s   13.2%
+optimizer_step                   0.23s    0.2%
+other                            7.87s    5.3%

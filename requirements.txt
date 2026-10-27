@@ -1,13 +1,16 @@
+# PyTorch d'abord, build CUDA (sinon pip installe une roue CPU sous Windows) :
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130
 numpy
 pandas
 openpyxl          # lecture de metadata_classification_DR.xlsx
 scikit-learn
 opencv-python
+Pillow
 requests
 tqdm
 pyyaml
-psutil
-# PyTorch : installer à part selon la machine (CPU / CUDA), voir https://pytorch.org/get-started/locally/
-# torch
-# torchvision
+psutil            # resource monitor, environnement (Table 1)
+matplotlib        # figures
 pytest
+line_profiler     # semaine 1 : benchmarks/profile_line.py
+cupy-cuda13x      # semaine 2 : filtre médian CuPy (A4.11) ; prendre cupy-cuda12x si CUDA 12

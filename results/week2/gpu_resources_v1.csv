@@ -1,0 +1,17 @@
+op,batch,peak_extra_mib,input_mib,allocations_per_call,cuda_kernels_per_call
+clahe,128,382.0029296875,73.5,72,76
+clahe_luma (GPU variant),128,345.2529296875,73.5,62,68
+circular_crop,128,74.0,73.5,1,1
+normalize,128,148.0,73.5,2,2
+crop+normalize,128,221.5,73.5,3,3
+crop+normalize fused (GPU variant),128,74.0,73.5,1,1
+preprocess_full,128,456.0029296875,73.5,73,79
+preprocess_full fused (GPU variant),128,456.0029296875,73.5,74,77
+gaussian_blur,128,150.96142578125,73.5,5,5
+gaussian_blur 2D kernel (GPU variant),128,150.1494140625,73.5,4,4
+median_filter,128,663.75390625,73.5,10,12
+green_channel,128,24.5,73.5,1,1
+contrast_stretch,128,149.47314453125,73.5,32,51
+augmentation,128,124.005859375,73.5,36,45
+median_filter CuPy RawKernel (GPU variant),128,110.75,73.5,4,5
+median_filter cupyx.ndimage (GPU variant),128,92.375,73.5,3,6

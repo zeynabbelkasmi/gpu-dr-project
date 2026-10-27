@@ -1,0 +1,139 @@
+C:\Users\zeyna\gpu-dr-project\src\data_loader.py:61: UserWarning: 1 image(s) listée(s) dans les métadonnées mais absente(s) : ['2T2SALA702'] -> ignorée(s)
+  warnings.warn(msg + " -> ignorée(s)")
+USDT:2026-10-27 19:34:51 5052:28844 C:\actions-runner\_work\pytorch\pytorch\third_party\kineto\libkineto\src\SyncActivityProfilerHandler.cpp:39] profiler_start
+[W1027 19:34:51.000000000 CPUAllocator.cpp:245] Memory block of unknown size was allocated before the profiling started, profiler results will not include the deallocation event
+USDT:2026-10-27 19:34:54 5052:28844 C:\actions-runner\_work\pytorch\pytorch\third_party\kineto\libkineto\src\SyncActivityProfilerHandler.cpp:46] profiler_stop
+Timer unit: 0.001 s
+
+Total time: 2.58234 s
+File: C:\Users\zeyna\gpu-dr-project\src\data_loader.py
+Function: DRDataset.load at line 198
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   198                                               def load(self, idx):
+   199                                                   """Decode + resize only (the 'loading' stage). Returns HWC uint8."""
+   200        64          0.1      0.0      0.0          if self.cache is not None:
+   201                                                       return np.asarray(self.cache[idx])
+   202        64          0.1      0.0      0.0          path, _ = self.items[idx]
+   203       128         87.5      0.7      3.4          with Image.open(path) as im:
+   204        64       2480.2     38.8     96.0              im = im.convert("RGB").resize(self.image_size, Image.Resampling.BILINEAR)
+   205        64         14.6      0.2      0.6              return np.asarray(im, dtype=np.uint8)
+
+Total time: 0.229952 s
+File: C:\Users\zeyna\gpu-dr-project\src\preprocess_cpu.py
+Function: preprocess_image at line 44
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    44                                           def preprocess_image(img, cfg):
+    45                                               """Full CPU preprocessing for one RGB float [0,1] image -> CHW array."""
+    46        64          0.1      0.0      0.1      p = cfg["preprocess"]
+    47        64          0.0      0.0      0.0      x = img
+    48        64          0.1      0.0      0.1      if p.get("gamma", 1.0) != 1.0:
+    49                                                   x = apply_gamma(x, p["gamma"])
+    50        64          0.1      0.0      0.0      if p.get("clahe"):
+    51        64        165.2      2.6     71.8          x = apply_clahe(x)
+    52        64          0.1      0.0      0.0      if p.get("circular_crop"):
+    53        64         26.8      0.4     11.7          x = circular_crop(x)
+    54        64          0.1      0.0      0.0      if p.get("normalize"):
+    55        64         35.6      0.6     15.5          x = normalize(x)
+    56        64          1.7      0.0      0.8      return x.transpose(2, 0, 1).astype(np.float32)
+
+Total time: 0.164591 s
+File: C:\Users\zeyna\gpu-dr-project\src\preprocess_cpu.py
+Function: apply_clahe at line 23
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    23                                           def apply_clahe(img, clip=2.0, grid=8):
+    24                                               """CLAHE on the L channel of LAB. Input RGB float [0,1], same range out."""
+    25        64          9.2      0.1      5.6      u8 = (img * 255).astype(np.uint8)
+    26        64         94.6      1.5     57.5      lab = cv2.cvtColor(u8, cv2.COLOR_RGB2LAB)
+    27        64          2.3      0.0      1.4      l, a, b = cv2.split(lab)
+    28        64         15.1      0.2      9.2      cl = cv2.createCLAHE(clipLimit=clip, tileGridSize=(grid, grid)).apply(l)
+    29        64         33.0      0.5     20.0      out = cv2.cvtColor(cv2.merge((cl, a, b)), cv2.COLOR_LAB2RGB)
+    30        64         10.5      0.2      6.4      return out.astype(np.float32) / 255.0
+
+Total time: 0.026473 s
+File: C:\Users\zeyna\gpu-dr-project\src\preprocess_cpu.py
+Function: circular_crop at line 13
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    13                                           def circular_crop(img):
+    14                                               """Zero out everything outside the fundus circle."""
+    15        64          0.2      0.0      0.7      h, w = img.shape[:2]
+    16        64          0.6      0.0      2.3      mask = np.zeros((h, w), np.uint8)
+    17        64          0.8      0.0      2.9      cv2.circle(mask, (w // 2, h // 2), max(min(h, w) // 2 - 2, 1), 255, -1)
+    18        64          1.9      0.0      7.1      out = img.copy()
+    19        64         23.0      0.4     86.8      out[mask == 0] = 0
+    20        64          0.1      0.0      0.2      return out
+
+Total time: 0.035388 s
+File: C:\Users\zeyna\gpu-dr-project\src\preprocess_cpu.py
+Function: normalize at line 40
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    40                                           def normalize(img):
+    41        64         35.4      0.6    100.0      return (img - MEAN) / STD
+
+
+-------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  
+                                                   Name    Self CPU %      Self CPU   CPU total %     CPU total  CPU time avg       CPU Mem  Self CPU Mem    # of Calls  
+-------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  
+                             aten::convolution_backward        38.91%        1.124s        38.98%        1.126s      62.558ms     443.13 MB           0 B            18  
+                               aten::mkldnn_convolution        24.67%     712.838ms        24.85%     718.078ms      39.893ms       2.01 GB           0 B            18  
+                          aten::max_pool2d_with_indices        12.03%     347.617ms        12.03%     347.617ms      19.312ms       1.51 GB       1.51 GB            18  
+                               aten::threshold_backward         8.08%     233.504ms         8.08%     233.504ms       9.729ms       2.01 GB       2.01 GB            24  
+                 aten::max_pool2d_with_indices_backward         5.87%     169.702ms        10.31%     297.860ms      16.548ms       2.01 GB       2.01 GB            18  
+                                            aten::fill_         4.52%     130.561ms         4.52%     130.561ms       3.109ms           0 B           0 B            42  
+                                       aten::clamp_min_         4.14%     119.683ms         4.14%     119.683ms       4.987ms           0 B           0 B            24  
+                                            aten::empty         0.23%       6.752ms         0.23%       6.752ms      62.515us       2.44 GB       2.44 GB           108  
+                                                forward         0.20%       5.730ms        41.54%        1.200s     200.030ms       3.52 GB      -3.75 KB             6  
+                                               backward         0.14%       4.173ms        57.97%        1.675s     279.114ms      -3.52 GB         -24 B             6  
+                              Optimizer.step#AdamW.step         0.13%       3.822ms         0.48%      13.967ms       2.328ms           0 B     -28.34 MB             6  
+                             aten::_adaptive_avg_pool2d         0.10%       2.805ms         0.11%       3.157ms     526.183us       1.50 MB           0 B             6  
+                                               aten::mm         0.08%       2.426ms         0.08%       2.432ms     101.350us      13.72 MB      13.72 MB            24  
+                    aten::_adaptive_avg_pool2d_backward         0.08%       2.348ms         0.17%       4.977ms     829.517us      73.50 MB           0 B             6  
+                                             aten::sqrt         0.08%       2.206ms         0.08%       2.206ms      36.775us      14.17 MB      14.17 MB            60  
+                                            aten::addmm         0.06%       1.624ms         0.06%       1.768ms     147.342us     195.75 KB     195.75 KB            12  
+                                              aten::div         0.05%       1.467ms         0.07%       2.082ms      34.707us      14.17 MB      14.17 MB            60  
+                                         aten::_to_copy         0.05%       1.436ms         0.07%       1.953ms       6.384us       1.20 KB           0 B           306  
+                                            aten::relu_         0.04%       1.276ms         4.19%     120.959ms       5.040ms           0 B           0 B            24  
+                                             aten::mul_         0.04%       1.207ms         0.07%       1.949ms      16.240us           0 B        -480 B           120  
+                                            aten::lerp_         0.03%     990.500us         0.03%     990.500us      16.508us           0 B           0 B            60  
+autograd::engine::evaluate_function: MaxPool2DWithIn...         0.03%     888.300us        10.35%     299.082ms      16.616ms     514.50 MB      -1.51 GB            18  
+                                         aten::addcdiv_         0.02%     710.900us         0.02%     710.900us      11.848us           0 B           0 B            60  
+autograd::engine::evaluate_function: ConvolutionBack...         0.02%     702.200us        39.01%        1.127s      62.617ms      -2.01 GB      -2.44 GB            18  
+                                               aten::to         0.02%     701.500us         0.09%       2.655ms       8.510us       1.20 KB           0 B           312  
+-------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  
+Self CPU time total: 2.889s
+
+{
+  "batch_size": 32,
+  "steps": 6,
+  "torch_threads": 8,
+  "per_step_ms": {
+    "forward": 200.02954999999997,
+    "backward": 279.11435000000006,
+    "optimizer_step": 2.372599999999986
+  },
+  "share_of_step": {
+    "forward": 0.41541577495267545,
+    "backward": 0.5796568757249233,
+    "optimizer_step": 0.004927349322401177
+  },
+  "imgs_per_s_compute_only": 66.45670501426223,
+  "top_self_ops_ms_per_step": {
+    "aten::convolution_backward": 187.34150000000048,
+    "aten::mkldnn_convolution": 118.80631666666672,
+    "aten::max_pool2d_with_indices": 57.93620000000002,
+    "aten::threshold_backward": 38.91728333333323,
+    "aten::max_pool2d_with_indices_backward": 28.283599999999964,
+    "aten::fill_": 21.760233333333264,
+    "aten::clamp_min_": 19.947166666666632,
+    "aten::empty": 1.125266666666561
+  }
+}

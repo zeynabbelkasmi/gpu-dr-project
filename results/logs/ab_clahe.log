@@ -1,0 +1,9 @@
+C:\Users\zeyna\gpu-dr-project\src\data_loader.py:61: UserWarning: 1 image(s) listée(s) dans les métadonnées mais absente(s) : ['2T2SALA702'] -> ignorée(s)
+  warnings.warn(msg + " -> ignorée(s)")
+ batch            step              impl   mean_ms   std_ms  frac_pixels_L0
+    32  histogram only     bincount (v1)  0.229340 0.034695             NaN
+    32  histogram only scatter_add_ (v2)  0.148890 0.020948             NaN
+    32 clahe_gpu total scatter_add_ (v2)  2.784345 0.399567        0.323109
+   128  histogram only     bincount (v1)  0.839335 0.033685             NaN
+   128  histogram only scatter_add_ (v2)  0.416265 0.014161             NaN
+   128 clahe_gpu total scatter_add_ (v2) 17.213630 0.071667        0.347354

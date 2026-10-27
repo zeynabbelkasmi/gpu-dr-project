@@ -1,0 +1,133 @@
+C:\Users\zeyna\gpu-dr-project\src\data_loader.py:61: UserWarning: 1 image(s) listée(s) dans les métadonnées mais absente(s) : ['2T2SALA702'] -> ignorée(s)
+  warnings.warn(msg + " -> ignorée(s)")
+GPU state idle -> after warm-up: {'pcie_gen': 4, 'pcie_width': 8, 'sm_clock_mhz': 1980, 'pstate': 'P0'} {'pcie_gen': 4, 'pcie_width': 8, 'sm_clock_mhz': 2370, 'pstate': 'P0'}
+[sweep] clahe
+[sweep] clahe_luma (GPU variant)
+[sweep] circular_crop
+[sweep] normalize
+[sweep] crop+normalize
+[sweep] crop+normalize fused (GPU variant)
+[sweep] preprocess_full
+[sweep] preprocess_full fused (GPU variant)
+[sweep] gaussian_blur
+[sweep] gaussian_blur 2D kernel (GPU variant)
+[sweep] median_filter
+[sweep] green_channel
+[sweep] contrast_stretch
+[sweep] augmentation
+[sweep] median_filter CuPy RawKernel (GPU variant)
+[sweep] median_filter cupyx.ndimage (GPU variant)
+                                        op  n_images      max_abs     mean_abs  frac_bit_exact  frac_within_1_level (1/255)  luminance_corr  max_abs_levels  max_abs_interior
+                                     clahe       128 0.000000e+00 0.000000e+00        1.000000                     1.000000        1.000000             0.0               NaN
+                  clahe_luma (GPU variant)       128 1.843137e-01 1.900743e-02        0.006773                     0.087397        0.998613            47.0               NaN
+                             circular_crop       128 0.000000e+00 0.000000e+00        1.000000                     1.000000             NaN             NaN               NaN
+                                 normalize       128 0.000000e+00 0.000000e+00        1.000000                     1.000000             NaN             NaN               NaN
+                            crop+normalize       128 0.000000e+00 0.000000e+00        1.000000                     1.000000             NaN             NaN               NaN
+        crop+normalize fused (GPU variant)       128 2.384186e-07 2.649016e-08        0.550580                     1.000000             NaN             NaN               NaN
+                           preprocess_full       128 0.000000e+00 0.000000e+00        1.000000                     1.000000             NaN             NaN               NaN
+       preprocess_full fused (GPU variant)       128 2.384186e-07 3.174033e-08        0.498745                     1.000000             NaN             NaN               NaN
+                             gaussian_blur       128 2.384186e-07 1.426581e-08        0.664271                     1.000000             NaN             NaN               NaN
+     gaussian_blur 2D kernel (GPU variant)       128 3.576279e-07 2.258137e-08        0.558742                     1.000000             NaN             NaN               NaN
+                             median_filter       128 0.000000e+00 0.000000e+00        1.000000                     1.000000             NaN             NaN               NaN
+                             green_channel       128 0.000000e+00 0.000000e+00        1.000000                     1.000000             NaN             NaN               NaN
+                          contrast_stretch       128 3.598907e-08 6.245482e-09        0.402337                     1.000000             NaN             NaN               NaN
+                              augmentation       128 1.734495e-05 8.486903e-08        0.540746                     1.000000             NaN             NaN          0.000016
+median_filter CuPy RawKernel (GPU variant)       128 0.000000e+00 0.000000e+00        1.000000                     1.000000             NaN             NaN               NaN
+ median_filter cupyx.ndimage (GPU variant)       128 0.000000e+00 0.000000e+00        1.000000                     1.000000             NaN             NaN               NaN
+ batch   dtype   memory    bytes  mean_ms   std_ms  gb_per_s
+    32   uint8 pageable  4816896  0.48541 0.020226  9.923356
+    32   uint8   pinned  4816896  0.43354 0.028160 11.110615
+    32 float32 pageable 19267584  1.71229 0.198140 11.252524
+    32 float32   pinned 19267584  1.51128 0.034495 12.749182
+   128   uint8 pageable 19267584  1.73356 0.190463 11.114460
+   128   uint8   pinned 19267584  1.51393 0.046055 12.726866
+   128 float32 pageable 77070336  6.70136 1.104156 11.500701
+   128 float32   pinned 77070336  5.85891 0.045247 13.154381
+USDT:2026-10-27 19:52:33 32560:7496 C:\actions-runner\_work\pytorch\pytorch\third_party\kineto\libkineto\src\SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-10-27 19:52:33 32560:7496 C:\actions-runner\_work\pytorch\pytorch\third_party\kineto\libkineto\src\SyncActivityProfilerHandler.cpp:46] profiler_stop
+USDT:2026-10-27 19:52:34 32560:7496 C:\actions-runner\_work\pytorch\pytorch\third_party\kineto\libkineto\src\SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-10-27 19:52:34 32560:7496 C:\actions-runner\_work\pytorch\pytorch\third_party\kineto\libkineto\src\SyncActivityProfilerHandler.cpp:46] profiler_stop
+USDT:2026-10-27 19:52:34 32560:7496 C:\actions-runner\_work\pytorch\pytorch\third_party\kineto\libkineto\src\SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-10-27 19:52:34 32560:7496 C:\actions-runner\_work\pytorch\pytorch\third_party\kineto\libkineto\src\SyncActivityProfilerHandler.cpp:46] profiler_stop
+USDT:2026-10-27 19:52:34 32560:7496 C:\actions-runner\_work\pytorch\pytorch\third_party\kineto\libkineto\src\SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-10-27 19:52:34 32560:7496 C:\actions-runner\_work\pytorch\pytorch\third_party\kineto\libkineto\src\SyncActivityProfilerHandler.cpp:46] profiler_stop
+USDT:2026-10-27 19:52:34 32560:7496 C:\actions-runner\_work\pytorch\pytorch\third_party\kineto\libkineto\src\SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-10-27 19:52:34 32560:7496 C:\actions-runner\_work\pytorch\pytorch\third_party\kineto\libkineto\src\SyncActivityProfilerHandler.cpp:46] profiler_stop
+USDT:2026-10-27 19:52:34 32560:7496 C:\actions-runner\_work\pytorch\pytorch\third_party\kineto\libkineto\src\SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-10-27 19:52:34 32560:7496 C:\actions-runner\_work\pytorch\pytorch\third_party\kineto\libkineto\src\SyncActivityProfilerHandler.cpp:46] profiler_stop
+USDT:2026-10-27 19:52:34 32560:7496 C:\actions-runner\_work\pytorch\pytorch\third_party\kineto\libkineto\src\SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-10-27 19:52:34 32560:7496 C:\actions-runner\_work\pytorch\pytorch\third_party\kineto\libkineto\src\SyncActivityProfilerHandler.cpp:46] profiler_stop
+USDT:2026-10-27 19:52:34 32560:7496 C:\actions-runner\_work\pytorch\pytorch\third_party\kineto\libkineto\src\SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-10-27 19:52:34 32560:7496 C:\actions-runner\_work\pytorch\pytorch\third_party\kineto\libkineto\src\SyncActivityProfilerHandler.cpp:46] profiler_stop
+USDT:2026-10-27 19:52:34 32560:7496 C:\actions-runner\_work\pytorch\pytorch\third_party\kineto\libkineto\src\SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-10-27 19:52:34 32560:7496 C:\actions-runner\_work\pytorch\pytorch\third_party\kineto\libkineto\src\SyncActivityProfilerHandler.cpp:46] profiler_stop
+USDT:2026-10-27 19:52:34 32560:7496 C:\actions-runner\_work\pytorch\pytorch\third_party\kineto\libkineto\src\SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-10-27 19:52:34 32560:7496 C:\actions-runner\_work\pytorch\pytorch\third_party\kineto\libkineto\src\SyncActivityProfilerHandler.cpp:46] profiler_stop
+USDT:2026-10-27 19:52:34 32560:7496 C:\actions-runner\_work\pytorch\pytorch\third_party\kineto\libkineto\src\SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-10-27 19:52:34 32560:7496 C:\actions-runner\_work\pytorch\pytorch\third_party\kineto\libkineto\src\SyncActivityProfilerHandler.cpp:46] profiler_stop
+USDT:2026-10-27 19:52:34 32560:7496 C:\actions-runner\_work\pytorch\pytorch\third_party\kineto\libkineto\src\SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-10-27 19:52:34 32560:7496 C:\actions-runner\_work\pytorch\pytorch\third_party\kineto\libkineto\src\SyncActivityProfilerHandler.cpp:46] profiler_stop
+USDT:2026-10-27 19:52:34 32560:7496 C:\actions-runner\_work\pytorch\pytorch\third_party\kineto\libkineto\src\SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-10-27 19:52:34 32560:7496 C:\actions-runner\_work\pytorch\pytorch\third_party\kineto\libkineto\src\SyncActivityProfilerHandler.cpp:46] profiler_stop
+USDT:2026-10-27 19:52:34 32560:7496 C:\actions-runner\_work\pytorch\pytorch\third_party\kineto\libkineto\src\SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-10-27 19:52:34 32560:7496 C:\actions-runner\_work\pytorch\pytorch\third_party\kineto\libkineto\src\SyncActivityProfilerHandler.cpp:46] profiler_stop
+USDT:2026-10-27 19:52:34 32560:7496 C:\actions-runner\_work\pytorch\pytorch\third_party\kineto\libkineto\src\SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-10-27 19:52:34 32560:7496 C:\actions-runner\_work\pytorch\pytorch\third_party\kineto\libkineto\src\SyncActivityProfilerHandler.cpp:46] profiler_stop
+USDT:2026-10-27 19:52:34 32560:7496 C:\actions-runner\_work\pytorch\pytorch\third_party\kineto\libkineto\src\SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-10-27 19:52:34 32560:7496 C:\actions-runner\_work\pytorch\pytorch\third_party\kineto\libkineto\src\SyncActivityProfilerHandler.cpp:46] profiler_stop
+                                        op  batch  peak_extra_mib  input_mib  allocations_per_call  cuda_kernels_per_call
+                                     clahe    128      405.002930       73.5                    60                     68
+                  clahe_luma (GPU variant)    128      344.252930       73.5                    57                     67
+                             circular_crop    128       74.000000       73.5                     1                      1
+                                 normalize    128      147.500000       73.5                     2                      2
+                            crop+normalize    128      222.000000       73.5                     3                      3
+        crop+normalize fused (GPU variant)    128       74.000000       73.5                     1                      1
+                           preprocess_full    128      480.002930       73.5                    61                     71
+       preprocess_full fused (GPU variant)    128      480.002930       73.5                    62                     69
+                             gaussian_blur    128      150.961426       73.5                     5                      5
+     gaussian_blur 2D kernel (GPU variant)    128      150.149414       73.5                     4                      4
+                             median_filter    128      664.378906       73.5                    10                     12
+                             green_channel    128       24.500000       73.5                     1                      1
+                          contrast_stretch    128      148.973145       73.5                    32                     51
+                              augmentation    128      123.005859       73.5                    36                     45
+median_filter CuPy RawKernel (GPU variant)    128      110.750000       73.5                     4                      5
+ median_filter cupyx.ndimage (GPU variant)    128       92.375000       73.5                     3                      6
+USDT:2026-10-27 19:52:34 32560:7496 C:\actions-runner\_work\pytorch\pytorch\third_party\kineto\libkineto\src\SyncActivityProfilerHandler.cpp:39] profiler_start
+USDT:2026-10-27 19:52:34 32560:7496 C:\actions-runner\_work\pytorch\pytorch\third_party\kineto\libkineto\src\SyncActivityProfilerHandler.cpp:46] profiler_stop
+{
+  "gpu_state_idle": {
+    "pcie_gen": 4,
+    "pcie_width": 8,
+    "sm_clock_mhz": 1980,
+    "pstate": "P0"
+  },
+  "gpu_state_after_warmup": {
+    "pcie_gen": 4,
+    "pcie_width": 8,
+    "sm_clock_mhz": 2370,
+    "pstate": "P0"
+  },
+  "gpu_state_end": {
+    "pcie_gen": 4,
+    "pcie_width": 8,
+    "sm_clock_mhz": 2565,
+    "pstate": "P3"
+  },
+  "n_images": 128,
+  "image_size": [
+    224,
+    224
+  ],
+  "cv2_threads": 16,
+  "torch_cpu_threads": 8,
+  "cpu_mt_workers": 8,
+  "gpu": "NVIDIA GeForce RTX 4070 Laptop GPU",
+  "torch": "2.14.1+cu130",
+  "cuda": "13.0",
+  "opencv": "5.0.0",
+  "cupy": "14.2.0",
+  "device_constants_mib": {
+    "preprocess_gpu total": 99.44880294799805,
+    "of which LAB LUTs": 96.0
+  }
+}

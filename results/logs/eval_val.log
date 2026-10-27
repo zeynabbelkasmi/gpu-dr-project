@@ -1,0 +1,3 @@
+C:\Users\zeyna\gpu-dr-project\src\data_loader.py:61: UserWarning: 1 image(s) listée(s) dans les métadonnées mais absente(s) : ['2T2SALA702'] -> ignorée(s)
+  warnings.warn(msg + " -> ignorée(s)")
+[eval:baseline:val] n=450 acc=0.3911 P=0.4201 R=0.3846 F1=0.3499 (27 img/s) -> results\baseline\metrics_val.json
