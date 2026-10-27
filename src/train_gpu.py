@@ -1,6 +1,7 @@
-"""Optimized GPU pipeline entry point: configs/optimized.yaml on CUDA -> results/optimized/.
+"""Optimized GPU pipeline entry point: configs/optimized.yaml on CUDA -> results/optimized/."""
+import os, sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from src.train import main
 
-TODO(A6.5): once configs/optimized.yaml and the GPU path in src/train.py work, call
-src.train.main with device "cuda", run="optimized" and monitor=True, mirroring
-src/train_cpu.py. Keep the file as small as train_cpu.py: the logic lives in train.py.
-"""
+if __name__ == "__main__":
+    main("configs/optimized.yaml", "cuda", run="optimized", monitor=True)

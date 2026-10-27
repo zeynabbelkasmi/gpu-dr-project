@@ -1,0 +1,33 @@
+# Week 3: every pipeline/precision optimization ON with the REFERENCE model, so that the
+# speedup vs exp_cache_cpu is a pure pipeline + device effect (A6.10). Final design with the
+# alternative model: configs/optimized.yaml.
+seed: 42
+data:
+  root: data/dr_dataset     # teacher layout; unused while split_csv is set
+  split_csv: splits/splits.csv   # team split (StratifiedGroupKFold, patient-level, seed 42, 70/15/15).
+                                 # Images resolved through src/paths.py (FDR26_DATA). Same split for every run.
+  image_size: [224, 224]
+  num_classes: 5
+  train_frac: 0.70
+  val_frac: 0.15
+  batch_size: 32
+  num_workers: 2
+  cache_dir: data/cache
+  gpu_resident: true
+preprocess:
+  clahe: true
+  circular_crop: true
+  normalize: true
+  gamma: 1.0
+  gpu: true
+  precompute: true
+train:
+  model: reference_cnn
+  epochs: 5
+  lr: 0.001
+  amp: true
+  channels_last: true
+  cudnn_benchmark: true
+  fused_adamw: true
+  weight_decay: 0.0
+  label_smoothing: 0.0

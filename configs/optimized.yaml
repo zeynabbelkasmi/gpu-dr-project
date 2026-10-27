@@ -1,6 +1,6 @@
-# Your optimized configuration (assignment A6). Start from baseline.yaml and change
-# ONE factor at a time, keeping a copy of each variant as configs/exp_<name>.yaml.
-# Keys read by the code are listed here; the code that reads them is a TODO in src/.
+# Final Week 3 design (A6.8): fastest pipeline (configs/optimized_cnn.yaml) + ResNet-18.
+# Every optimization is also measured alone in configs/exp_*.yaml (one change at a time).
+# compile stays off: +20 s cold epoch and no steady-state gain measured (exp_compile).
 seed: 42
 data:
   root: data/dr_dataset     # teacher layout; unused while split_csv is set
@@ -10,25 +10,25 @@ data:
   num_classes: 5
   train_frac: 0.70
   val_frac: 0.15
-  batch_size: 32            # TODO(A6.7): tune (throughput, GPU memory, validation accuracy)
-  num_workers: 2            # TODO(A5.8): tune; find the point where more workers stop helping
-  # prefetch_factor: 2      # TODO(A5.1): batches each worker keeps ready (needs num_workers > 0)
-  cache_dir: data/cache     # A3: decoded uint8 cache (memory-mapped .npy); null disables it
-  # prefetch_gpu: false     # TODO(A5.5): overlap host-to-device copy with compute
+  batch_size: 32            # A6.7: tune (throughput, memory, val accuracy)
+  num_workers: 2            # unused with gpu_resident (no DataLoader)
+  cache_dir: data/cache
+  gpu_resident: true        # whole split in GPU memory: no loader, no per-epoch PCIe copy
 preprocess:
   clahe: true
   circular_crop: true
   normalize: true
   gamma: 1.0
-  # gpu: false              # TODO(A5.3): batched preprocessing on the GPU
-  # augment: false          # train-only flip + rotation (CPU path and GPU path both exist)
+  gpu: true
+  precompute: true          # A5.9: deterministic preprocessing computed once
 train:
-  model: reference_cnn      # TODO(A6.6): compare against a justified alternative
+  model: resnet18           # A6.6: +13 pts val acc vs reference_cnn (exp_resnet18 vs exp_cache_gpu)
   epochs: 5
   lr: 0.001
-  # scheduler: cosine
-  # amp: false              # TODO(A6.1): mixed precision
-  # channels_last: false    # TODO(A6.2): measure, do not assume
-  # compile: false          # TODO(A6.3): torch.compile (needs Triton, i.e. Linux)
+  scheduler: cosine         # A6.9: best val F1 over 3 seeds (exp_r18_cosine)
+  amp: true                 # A6.1: autocast + GradScaler (-34 % GPU memory)
+  channels_last: true       # A6.2: keep only if the A7.6 ablation shows a gain
+  cudnn_benchmark: true
+  fused_adamw: true
   weight_decay: 0.0
   label_smoothing: 0.0

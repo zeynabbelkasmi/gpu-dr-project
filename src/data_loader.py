@@ -300,15 +300,25 @@ def make_loaders(cfg, device="cpu", gpu_preprocess=False, which=("train", "val",
         cache = build_cache(splits[k], cfg["data"]["image_size"], cache_dir) if cache_dir else None
         ds = DRDataset(splits[k], cfg["data"]["image_size"], transform=tf,
                        raw_uint8=gpu_preprocess, cache=cache)
-        # TODO(A5.1): add the DataLoader options that feed a GPU efficiently:
-        #   pin_memory (only when device == "cuda"), persistent_workers (when nw > 0),
-        #   prefetch_factor (cfg["data"].get("prefetch_factor", 2), only valid when nw > 0),
-        #   worker_init_fn=_worker_init (when nw > 0).
+        # A5.1: options that feed a GPU efficiently.
+        #   pin_memory: batches land in page-locked memory, so x.to(cuda, non_blocking=True)
+        #     is a real asynchronous DMA copy (only useful when the consumer is a GPU).
+        #   persistent_workers: workers survive between epochs (no re-spawn, no re-pickling
+        #     of the dataset each epoch; this matters most on Windows, where workers are spawned).
+        #   prefetch_factor: batches each worker keeps ready ahead of the training loop.
+        #   worker_init_fn: one OpenCV thread per worker (avoids CPU oversubscription).
+        # The last three are only valid with worker processes (nw > 0).
+        opts = {"pin_memory": str(device).startswith("cuda")}
+        if nw > 0:
+            opts.update(persistent_workers=True,
+                        prefetch_factor=cfg["data"].get("prefetch_factor", 2),
+                        worker_init_fn=_worker_init)
         loaders[k] = DataLoader(
             ds,
             batch_size=cfg["data"]["batch_size"],
             shuffle=(k == "train"),
             num_workers=nw,
             drop_last=(k == "train"),
+            **opts,
         )
     return loaders, splits

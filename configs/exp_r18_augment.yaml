@@ -1,0 +1,34 @@
+# Single-change experiment (Week 3, A6.9 training strategy): configs/optimized.yaml + train-only GPU flip + rotation.
+# Same split, model, pipeline and 5-epoch budget; repeat over seeds with
+#   python scripts/week3_experiments.py --only exp_r18_augment_gpu --seeds 42,43,44
+seed: 42
+data:
+  root: data/dr_dataset     # teacher layout; unused while split_csv is set
+  split_csv: splits/splits.csv   # team split (StratifiedGroupKFold, patient-level, seed 42, 70/15/15).
+                                 # Images resolved through src/paths.py (FDR26_DATA). Same split for every run.
+  image_size: [224, 224]
+  num_classes: 5
+  train_frac: 0.70
+  val_frac: 0.15
+  batch_size: 32            # A6.7: tune (throughput, memory, val accuracy)
+  num_workers: 2            # unused with gpu_resident (no DataLoader)
+  cache_dir: data/cache
+  gpu_resident: true        # whole split in GPU memory: no loader, no per-epoch PCIe copy
+preprocess:
+  clahe: true
+  circular_crop: true
+  normalize: true
+  gamma: 1.0
+  gpu: true
+  precompute: true          # A5.9: deterministic preprocessing computed once
+  augment: true             # the only change
+train:
+  model: resnet18           # A6.6: +13 pts val acc vs reference_cnn (exp_resnet18 vs exp_cache_gpu)
+  epochs: 5
+  lr: 0.001
+  amp: true                 # A6.1: autocast + GradScaler (-34 % GPU memory)
+  channels_last: true       # A6.2: keep only if the A7.6 ablation shows a gain
+  cudnn_benchmark: true
+  fused_adamw: true
+  weight_decay: 0.0
+  label_smoothing: 0.0
