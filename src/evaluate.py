@@ -35,14 +35,23 @@ def main(cfg_path, run=None, device_str="cpu", gpu_preprocess=None, checkpoint=N
     model.load_state_dict(ckpt["model"])
     model.eval()
 
+    # A6.4: same precision and memory format as training, so the test metrics describe the
+    # model as it was trained (an AMP-trained model evaluated in fp32, or the reverse, can give
+    # slightly different predictions). Inference time is reported separately from training
+    # time: no backward, no optimizer step and no augmentation, so it is not an epoch time.
+    amp = bool(cfg["train"].get("amp", False)) and device.type == "cuda"
+    channels_last = bool(cfg["train"].get("channels_last", False)) and device.type == "cuda"
+    if channels_last:
+        model = model.to(memory_format=torch.channels_last)
+
     ys, ps = [], []
-    # TODO(A6.4): evaluate with the same precision and memory format as training
-    #             (torch.autocast, channels_last) and use `pre` when GPU preprocessing is on.
-    #             Explain in the report why inference time and training time must not be mixed up.
     with torch.no_grad(), GpuTimer(device) as t:
         for x, y in loaders[split]:
-            x = pre(x) if pre is not None else x.to(device)
-            logits = model(x)
+            x = pre(x) if pre is not None else x.to(device, non_blocking=True)
+            if channels_last:
+                x = x.contiguous(memory_format=torch.channels_last)
+            with torch.autocast(device.type, enabled=amp):
+                logits = model(x)
             ys.extend(y.tolist())
             ps.extend(logits.argmax(1).cpu().tolist())
     labels = list(range(cfg["data"]["num_classes"]))

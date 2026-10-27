@@ -1,0 +1,28 @@
+# Single-change experiment (Week 3, A6.2): configs/exp_cache.yaml + channels_last.
+# Same split, seed, model and budget as exp_cache.yaml; run it on CUDA:
+#   python src/train.py --config configs/exp_channels_last.yaml --device cuda
+seed: 42
+data:
+  root: data/dr_dataset     # teacher layout; unused while split_csv is set
+  split_csv: splits/splits.csv   # team split (StratifiedGroupKFold, patient-level, seed 42, 70/15/15).
+                                 # Images resolved through src/paths.py (FDR26_DATA). Same split for every run.
+  image_size: [224, 224]
+  num_classes: 5
+  train_frac: 0.70
+  val_frac: 0.15
+  batch_size: 32
+  num_workers: 2
+  cache_dir: data/cache
+preprocess:
+  clahe: true
+  circular_crop: true
+  normalize: true
+  gamma: 1.0
+train:
+  model: reference_cnn
+  epochs: 5
+  lr: 0.001
+  amp: false
+  channels_last: true            # the only change
+  weight_decay: 0.0
+  label_smoothing: 0.0
