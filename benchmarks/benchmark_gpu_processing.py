@@ -68,11 +68,7 @@ def main():
     cfg = yaml.safe_load(open(args.config))
     set_seed(cfg["seed"])
     os.makedirs(OUT, exist_ok=True)
-    try:
-        import cupy  # noqa: F401
-        has_cupy = True
-    except ImportError:
-        has_cupy = False
+    has_cupy = fg.cupy_available()
 
     items = get_splits(cfg)["train"][:args.n]
     ds = DRDataset(items, cfg["data"]["image_size"])

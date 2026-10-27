@@ -55,7 +55,21 @@ Les scripts se lancent depuis la racine du repo (`python scripts/...`, `python b
 ## Lancer le pipeline
 
 Tout se lance depuis la racine du repo, avec le venv activé (Windows : `.venv\Scripts\activate`).
-PyTorch CUDA : `pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130`.
+PyTorch CUDA : choisir la roue selon la "CUDA Version" de `nvidia-smi` (driver ≥ 580 → `cu130`,
+sinon `cu128` ou `cu126`), par exemple
+`pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130`.
+Vérifier ensuite : `python -c "import torch; print(torch.cuda.is_available())"`. Les semaines 3-4
+(A5-A7) demandent un GPU NVIDIA : sans GPU, utiliser le serveur de l'école.
+
+### Règles d'équipe pour les semaines 3-4
+
+- Partir de `main` à jour (`git pull`), une branche par tâche, fusion par PR.
+- Les fichiers de `results/` cités par les rapports semaines 1-2 (`results/baseline/`, `results/week1/`,
+  `results/week2/`, `results/timing.csv`, `results/profile_stages.json`) viennent de la machine de référence
+  (RTX 4070 Laptop, Table 1) : ne pas les écraser. Pour vos runs, utiliser un `--run` à votre nom
+  (`--run w3_amp_ouiam`) et, pour un benchmark, `--out results/<machine>/...` ou un dossier à votre nom.
+- Toute comparaison se fait sur la même machine, avec le même split (`splits/splits.csv`), le même seed
+  et le même budget d'époques. Le cache `data/cache/` se reconstruit seul (~20 s) au premier run.
 
 | Tâche | Commande | Sorties |
 |---|---|---|
@@ -81,7 +95,7 @@ Consignes de l'enseignant : [`ASSIGNMENTS.md`](ASSIGNMENTS.md), avancement : `py
 ### Problèmes connus
 
 - Le GPU d'un portable démarre en P8 (lien PCIe en Gen1) : les benchmarks GPU appellent `gpu_warmup()` avant de mesurer.
-- `cupy-cuda13x` correspond à CUDA 13 ; avec un driver CUDA 12, installer `cupy-cuda12x`. Sans CuPy, seuls les variants CuPy du filtre médian sont sautés.
+- CuPy est optionnel : `cupy-cuda13x` pour un driver CUDA 13, `cupy-cuda12x` pour CUDA 12. S'il manque ou ne tourne pas avec le driver, les variantes CuPy du filtre médian sont sautées (tests et benchmark).
 - Les workers DataLoader utilisent `spawn` sous Windows : les transforms doivent être picklables (pas de lambda).
 - `tests/test_data_pipeline.py::test_prefetcher_yields_same_batches_on_device` échoue tant que `CudaPrefetcher` (semaine 3, A5.2) n'est pas écrit.
 - L'image `2T2SALA702` des métadonnées est absente de l'archive Zenodo : 2 999 images utilisées.
