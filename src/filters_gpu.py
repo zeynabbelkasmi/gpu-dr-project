@@ -116,8 +116,23 @@ void median_u8(const unsigned char* __restrict__ src, unsigned char* __restrict_
 
 
 def _cupy():
-    import cupy as cp                      # optional dependency (requirements: cupy-cuda13x)
+    import cupy as cp                      # optional dependency (see requirements.txt)
     return cp
+
+
+def cupy_available():
+    """True when CuPy is installed AND can run a kernel on this GPU/driver.
+
+    `import cupy` succeeds even when the wheel's CUDA major version is newer than the
+    driver supports (e.g. cupy-cuda13x on a CUDA 12 driver); only running code shows it.
+    """
+    if "cupy_ok" not in _CONST:
+        try:
+            cp = _cupy()
+            _CONST["cupy_ok"] = int(cp.arange(3).sum()) == 3
+        except Exception:
+            _CONST["cupy_ok"] = False
+    return _CONST["cupy_ok"]
 
 
 def _median_kernel(k):

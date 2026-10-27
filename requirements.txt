@@ -13,4 +13,6 @@ psutil            # resource monitor, environnement (Table 1)
 matplotlib        # figures
 pytest
 line_profiler     # semaine 1 : benchmarks/profile_line.py
-cupy-cuda13x      # semaine 2 : filtre médian CuPy (A4.11) ; prendre cupy-cuda12x si CUDA 12
+# Optionnel (NVIDIA uniquement), variantes CuPy du filtre médian (A4.11). Choisir selon
+# "CUDA Version" affichée par nvidia-smi, puis : pip install cupy-cuda13x   (ou cupy-cuda12x)
+# Sans CuPy, les tests/benchmarks correspondants sont simplement sautés.

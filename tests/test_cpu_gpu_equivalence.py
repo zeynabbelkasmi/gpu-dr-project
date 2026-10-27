@@ -131,12 +131,14 @@ def test_augment_gpu_shape_range_and_per_image_randomness():
 # Stricter checks added in Week 2: the implementation is exact where the CPU reference is
 # integer/uint8 based, so the tests demand bit-exactness there instead of a loose tolerance.
 # ---------------------------------------------------------------------------------------------
-try:
-    import cupy  # noqa: F401
-    HAS_CUPY = True
-except ImportError:
-    HAS_CUPY = False
-cupy_only = pytest.mark.skipif(not HAS_CUPY, reason="CuPy not installed")
+def _has_cupy():
+    if not torch.cuda.is_available():
+        return False
+    from src.filters_gpu import cupy_available
+    return cupy_available()
+
+
+cupy_only = pytest.mark.skipif(not _has_cupy(), reason="CuPy not installed or not usable with this driver")
 
 
 def _nchw(a):
