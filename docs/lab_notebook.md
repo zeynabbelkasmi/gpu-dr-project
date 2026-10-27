@@ -32,7 +32,7 @@ Decision:             <keep / drop the change, and what you do next>
 
 ## Entries
 
-The full write-ups are `report/week1_report.md` and `report/week2_report.md`; the entries below are the short records.
+The full write-ups are `report/week1_report.md`, `report/week2_report.md` and `report/week3_report.md`; the entries below are the short records.
 
 ### A1.7 Baseline run          date: 2026-10-27
 Config / commit:      configs/baseline.yaml
@@ -58,3 +58,37 @@ Prediction:           GPU overtakes the CPU at B ~ 8 for CLAHE, best per-image c
 Result:               crossover between B = 1 and 8 (correct); best per-image cost at B = 32, not 128 (wrong)
 Explanation:          CLAHE int64 index tensors exceed the 32 MB L2 above B = 32 (hypothesis, to verify with Nsight Compute)
 Decision:             call GPU preprocessing on 32-image batches
+
+### A5 + A6.10 GPU pipeline, one change at a time          date: 2026-10-27
+Config / commit:      configs/exp_*.yaml, optimized_cnn.yaml (branch week3-meryeme); Colab T4, 1 CPU core
+Question:             what does each pipeline change give once training runs on the GPU?
+Command:              python scripts/week3_experiments.py
+Result:               steady epoch: CPU 200.3 s -> GPU 7.83 s (25.6x) -> + GPU preprocessing 3.92 s (51x)
+                      -> + GPU-resident data 3.77 s -> + precompute 3.39 s -> + AMP/channels_last/cuDNN/fused AdamW
+                      1.48 s (135x) -> + CUDA graphs 0.90 s (222x, cold epoch 22.8 s). Prefetcher 3.97 s (no gain).
+                      AMP, channels_last, compile ALONE on the CPU-preprocessing path: 7.88-8.20 s (no gain).
+Surprise:             AMP alone gave nothing; it gave 2.3x only once combined after GPU preprocessing
+                      (no prediction was written before these runs)
+Explanation:          the run was input-bound (CLAHE on 1 CPU core); compute optimizations only pay once the
+                      run is compute-bound (Amdahl). Prefetch: a 4.8 MB uint8 copy vs ~50 ms per step.
+Decision:             keep GPU preprocessing, GPU-resident data, precompute, AMP, channels_last, cuDNN benchmark,
+                      fused AdamW; compile off (break-even ~36 epochs); prefetcher kept as code, not in final config
+
+### A5.9 / A5.10 Precompute and PCIe bytes          date: 2026-10-27
+Result:               PCIe per epoch: float32 1,205 MiB -> uint8 301 MiB -> GPU-resident 0 (366 MiB once).
+                      Precompute: 3.77 -> 3.39 s per epoch for 1,464 MiB float32 (732 MiB float16 under AMP)
+Decision:             precompute (fits easily in 16 GB); augmentation stays random on the fly
+
+### A6.6 / A6.9 ResNet-18 and training recipe (3 seeds)          date: 2026-10-27
+Config / commit:      configs/exp_resnet18.yaml, exp_r18_*.yaml, optimized.yaml
+Command:              python scripts/week3_experiments.py --seeds 42,43,44 --only optimized,exp_r18_...
+Result:               ResNet-18 vs reference CNN (same pipeline, seed 42): F1 0.525 vs 0.325.
+                      Val F1 (mean +/- std, n=3): no schedule 0.508+/-0.059, lr 3e-4 0.525+/-0.015,
+                      augment 0.473+/-0.012, cosine 0.577+/-0.026, regul 0.480+/-0.015, all four 0.564+/-0.018,
+                      all four 10 epochs 0.563+/-0.016. Final optimized (= cosine) re-run: 0.556+/-0.010.
+Surprise:             augmentation and regularization HURT at 5 epochs
+Explanation:          cosine brings the lr to 0 where the no-schedule run diverged (train 0.63 / val 0.45 at
+                      epoch 4); augmentation/regularization make the task harder and 5 epochs is too short.
+                      Same config, same seeds: 0.577 vs 0.556 -> GPU non-determinism (cudnn benchmark, atomics).
+Decision:             final = fast pipeline + ResNet-18 + cosine: pooled 6 runs val F1 0.566+/-0.021, 2.41 s/epoch
+                      (86x the Colab CPU, ~22x the Week 2 laptop CPU). Test set untouched until A7.8.

@@ -23,9 +23,12 @@
 Parameters and FLOPs (forward, one 224x224 image): reference CNN 0.62 M / 1.01 GFLOPs,
 ResNet-18 11.18 M / 3.63 GFLOPs.
 
-Still to do with measurements (needs the GPU): A5.8 sweep, A5.9 decision, A6.7 batch-size
-tuning, the A6.9 table and its analysis, and the final choice of `channels_last` and of the
-model in `optimized.yaml`.
+Also implemented after the first measurements: GPU-resident data and precompute
+(`src/gpu_resident.py`), `cudnn_benchmark`, fused AdamW, `compile_mode` (CUDA graphs), seed
+repetition in `scripts/week3_experiments.py`. Results and analysis: `report/week3_report.md`.
+
+Still to do (Week 4): A6.7 batch-size sweep on the final config, A7 profiling and ablation, test-set
+evaluation (A7.8). The A5.8 workers sweep only matters for the DataLoader path (`sweep_loader.py`).
 
 ## How to run (Colab, T4)
 
