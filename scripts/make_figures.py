@@ -3,6 +3,7 @@
 Read only measured artifacts. Never type a number by hand.
 
     python scripts/make_figures.py
+    python scripts/make_figures.py --only tables,metrics_json      # text outputs only, PNGs untouched
 
 Inputs (a figure whose inputs are missing is skipped with a message, or uses the documented
 fallback):
@@ -15,7 +16,10 @@ fallback):
   results/week4/confusion_*.json         test confusion matrices (summed over seeds)
   results/week4/profile_optimized/summary.json   GPU profile of the final config (benchmarks/profile_gpu.py)
   results/baseline/resources.csv, results/week4/ablation/full_s42/resources.csv (or results/optimized/)
-Outputs: results/figures/fig{1..5}_*.png, results/figures/fig6_confusion.png and results/tables.md
+  results/optimized_rtx*/, results/optimized_rtx_nocl*/   frozen config on the RTX 4070 laptop (src/train.py)
+  results/rtx4070/channels_last_{windows,wsl}.json        channels_last check (benchmarks/bench_channels_last.py)
+Outputs: results/figures/fig{1..5}_*.png, results/figures/fig6_confusion.png, results/tables.md and
+results/metrics.json (test metrics of both models)
 """
 import os, sys, json
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -500,14 +504,102 @@ def tables():
             L.append(f"- Measured end-to-end, final design, same machine: {o.speedup_steady_epoch:.1f}x per steady epoch, "
                      f"{o.speedup_total_5ep:.1f}x for the 5-epoch training including one-time costs (the model is 3.6x "
                      "more FLOPs per image at 224 px and 2x the pixels at 320 px).")
+    L += portability()
     os.makedirs("results", exist_ok=True)
     open(_p("results", "tables.md"), "w").write("\n".join(L) + "\n")
     print("  -> results/tables.md")
 
 
+def _runs(names):
+    """Mean/std over seeds of the timing and quality of train.py runs (results/<name>/history.json)."""
+    rows = []
+    for n in names:
+        path = _p("results", n, "history.json")
+        if not os.path.exists(path):
+            return None
+        h = json.load(open(path))
+        H = h["history"]
+        best = max(H, key=lambda e: e["val_acc"])
+        rows.append({"steady": h["steady_epoch_s"], "cold": h["cold_epoch_s"], "wall": h["wall_time_s"],
+                     "ips": sum(e["train_imgs_per_s"] for e in H[1:]) / max(len(H) - 1, 1),
+                     "acc": h["best_val_acc"], "f1": best["val_f1"]})
+    d = pd.DataFrame(rows)
+    return d.mean(), d.std()
+
+
+def portability():
+    """The frozen configuration on the RTX 4070 laptop (Windows) next to the Colab T4, and the
+    channels_last check on Windows vs WSL2 (benchmarks/bench_channels_last.py)."""
+    L = ["", "## Portability - frozen configuration on the RTX 4070 Laptop (Windows 11)", ""]
+    groups = (("Colab T4, Linux (`optimized*`)", "optimized"),
+              ("RTX 4070 Laptop, Windows, frozen config (`optimized_rtx*`)", "optimized_rtx"),
+              ("RTX 4070 Laptop, Windows, channels_last off (`optimized_rtx_nocl*`)", "optimized_rtx_nocl"))
+    rows = [(lab, _runs([base, base + "_s43", base + "_s44"])) for lab, base in groups]
+    if all(r is not None for _, r in rows):
+        L += ["train.py, 5 epochs, seeds 42-44, mean +/- std.", "",
+              "| Machine / configuration | Steady epoch (s) | Cold epoch (s) | Train img/s | Wall 5 epochs (s) | Val acc | Val macro-F1 |",
+              "|---|---|---|---|---|---|---|"]
+        for lab, (m, s) in rows:
+            L.append(f"| {lab} | {_f(m.steady, 2)} +/- {_f(s.steady, 2)} | {_f(m.cold, 2)} +/- {_f(s.cold, 2)} | "
+                     f"{_f(m.ips, 0)} | {_f(m.wall, 1)} +/- {_f(s.wall, 1)} | {_f(m.acc)} +/- {_f(s.acc)} | "
+                     f"{_f(m.f1)} +/- {_f(s.f1)} |")
+    else:
+        L.append("pending: train configs/optimized.yaml and configs/exp_channels_last_off.yaml on the RTX "
+                 "(runs optimized_rtx*, optimized_rtx_nocl*).")
+    plats = [(lab, _p("results", "rtx4070", f)) for lab, f in
+             (("Windows 11", "channels_last_windows.json"), ("WSL2 Ubuntu (Linux)", "channels_last_wsl.json"))]
+    if all(os.path.exists(p) for _, p in plats):
+        L += ["", "Same laptop, same GPU, synthetic data already on the GPU (training step of the final configuration, "
+              "3 x 40 steps; one BatchNorm2d fp16 64x64x160x160 forward + backward). "
+              "`results/rtx4070/channels_last_{windows,wsl}.json`.", "",
+              "| Platform | torch / cuDNN | Step AMP + channels_last (img/s) | Step AMP, NCHW (img/s) | channels_last speedup | "
+              "BatchNorm NHWC cuDNN (ms) | BatchNorm NHWC native (ms) | Batch norm in the step (ms / GPU ms) |",
+              "|---|---|---|---|---|---|---|---|"]
+        for lab, p in plats:
+            r = json.load(open(p))
+            s, b, k = r["step"], r["batch_norm_alone"], r["bn_kernels_channels_last_amp"]
+            L.append(f"| {lab} | {r['torch']} / {r['cudnn']} | {_f(s['amp_on_channels_last_on']['imgs_per_s'], 0)} | "
+                     f"{_f(s['amp_on_channels_last_off']['imgs_per_s'], 0)} | {_f(r['channels_last_speedup_amp'], 2, 'x')} | "
+                     f"{_f(b['nhwc_cudnn']['mean'], 1)} | {_f(b['nhwc_native']['mean'], 1)} | "
+                     f"{_f(k['batch_norm_ms'], 1)} / {_f(k['step_gpu_ms'], 1)} |")
+        L.append("")
+        for lab, p in plats:
+            top = json.load(open(p))["bn_kernels_channels_last_amp"]["kernels"][:2]
+            L.append(f"- {lab}, main batch-norm kernels: " + "; ".join(f"`{k['name'][:70]}` {k['ms_per_step']:.1f} ms" for k in top))
+    else:
+        L.append("pending: run benchmarks/bench_channels_last.py on Windows and on WSL2.")
+    return L
+
+
+def metrics_json():
+    """results/metrics.json: test metrics of the baseline and final models (from test_summary.csv)."""
+    ts = _read(_p(W4, "test_summary.csv"))
+    if ts is None:
+        print("  skip metrics.json: results/week4/test_summary.csv missing")
+        return
+    keys = ["accuracy", "macro_precision", "macro_recall", "macro_f1"] + [f"recall_c{c}" for c in range(5)]
+    out = {"source": "results/week4/test_summary.csv (scripts/week4_test_eval.py, test set used once)",
+           "split": "test", "seeds": [42, 43, 44]}
+    for m in ("baseline", "final"):
+        out[m] = {k: {"mean": float(ts.loc[m, f"test_{k}_mean"]), "std": float(ts.loc[m, f"test_{k}_std"])}
+                  for k in keys}
+        out[m]["confusion_matrix"] = f"results/week4/confusion_{m}.json"
+    with open(_p("results", "metrics.json"), "w") as f:
+        json.dump(out, f, indent=2)
+    print("  -> results/metrics.json")
+
+
 if __name__ == "__main__":
+    import argparse
+    steps = [fig1_baseline_breakdown, fig2_speedup, fig3_accuracy_vs_time,
+             fig4_ablation, fig5_resources, fig6_confusion, tables, metrics_json]
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--only", default=None, help="comma-separated, e.g. tables,metrics_json (default: everything)")
+    args = ap.parse_args()
+    only = set(args.only.split(",")) if args.only else None
     os.makedirs(OUT, exist_ok=True)
-    for fn in (fig1_baseline_breakdown, fig2_speedup, fig3_accuracy_vs_time,
-               fig4_ablation, fig5_resources, fig6_confusion, tables):
+    for fn in steps:
+        if only and fn.__name__ not in only:
+            continue
         print(fn.__name__)
         fn()

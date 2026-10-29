@@ -1,0 +1,126 @@
+{
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.14.6",
+  "torch": "2.14.1+cu130",
+  "cudnn": 92400,
+  "gpu": "NVIDIA GeForce RTX 4070 Laptop GPU",
+  "gpu_state": {
+    "pcie_gen": 4,
+    "pcie_width": 8,
+    "sm_clock_mhz": 2250,
+    "pstate": "P0"
+  },
+  "batch": 64,
+  "image_size": 320,
+  "step": {
+    "amp_on_channels_last_on": {
+      "ms_per_step": {
+        "mean": 416.07419000016915,
+        "std": 0.5268228950771017,
+        "runs": [
+          415.4658675004612,
+          416.3787575002061,
+          416.3779449998401
+        ]
+      },
+      "imgs_per_s": 153.81872160821604
+    },
+    "amp_on_channels_last_off": {
+      "ms_per_step": {
+        "mean": 112.1935075003421,
+        "std": 1.033834353094359,
+        "runs": [
+          111.62363750045188,
+          111.57001000028686,
+          113.38687500028755
+        ]
+      },
+      "imgs_per_s": 570.4429910955841
+    },
+    "amp_off_channels_last_on": {
+      "ms_per_step": {
+        "mean": 551.4259808335433,
+        "std": 0.8964391498822776,
+        "runs": [
+          550.5860650002433,
+          551.3220025000919,
+          552.369875000295
+        ]
+      },
+      "imgs_per_s": 116.06272142501645
+    },
+    "amp_off_channels_last_off": {
+      "ms_per_step": {
+        "mean": 202.37764583337898,
+        "std": 0.3646180080094204,
+        "runs": [
+          202.78652749984758,
+          202.26014250001754,
+          202.0862675002718
+        ]
+      },
+      "imgs_per_s": 316.2404609286359
+    }
+  },
+  "batch_norm_alone": {
+    "nhwc_cudnn": {
+      "mean": 131.38085166671468,
+      "std": 0.08470063427191252,
+      "runs": [
+        131.38537500053644,
+        131.29398000019137,
+        131.46319999941625
+      ]
+    },
+    "nhwc_native": {
+      "mean": 16.555745000368915,
+      "std": 0.0030099958982311085,
+      "runs": [
+        16.555130000051577,
+        16.559015000530053,
+        16.553090000525117
+      ]
+    },
+    "nchw_cudnn": {
+      "mean": 14.909971666929778,
+      "std": 0.0046129121720673025,
+      "runs": [
+        14.905105000070762,
+        14.910530000634026,
+        14.914280000084545
+      ]
+    },
+    "nchw_native": {
+      "mean": 15.112729999721827,
+      "std": 0.007299505304531363,
+      "runs": [
+        15.120300000126008,
+        15.112154999224003,
+        15.105734999815468
+      ]
+    }
+  },
+  "channels_last_speedup_amp": 0.26964784213194404,
+  "bn_kernels_channels_last_amp": {
+    "step_gpu_ms": 405.6657452000007,
+    "batch_norm_ms": 341.26969520000006,
+    "kernels": [
+      {
+        "name": "_ZN5cudnn21bn_bw_1C11_singlereadI6__halfLi512ELb0ELi3ELi2ELi0EEEvNS_15bn_bw_1C11_argsIT_EE",
+        "ms_per_step": 125.66732859999985
+      },
+      {
+        "name": "_ZN5cudnn24bn_fw_tr_1C11_singlereadI6__halfLi512ELb0ELi2ELi2ELi0EEEvNS_18bn_fw_tr_1C11_argsIT_EE",
+        "ms_per_step": 94.12735920000016
+      },
+      {
+        "name": "_ZN5cudnn21bn_bw_1C11_kernel_newI6__halff6float2Li512ELb0ELi3EEEvT0_S3_S3_S3_17cudnnTensorStructPKT_S4_S7_S4_PS5_PKS3_PS3_SB_SA_SA_S3_",
+        "ms_per_step": 75.58969300000004
+      },
+      {
+        "name": "_ZN5cudnn25bn_fw_tr_1C11_kernel_NCHWI6__halffiLi512ELb0ELi2ELb1EEEv17cudnnTensorStructPKT_S2_PS3_PKT0_S9_S7_S7_PS7_SA_SA_SA_S7_S7_",
+        "ms_per_step": 45.88531440000001
+      }
+    ]
+  }
+}

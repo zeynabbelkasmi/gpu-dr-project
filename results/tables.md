@@ -86,3 +86,23 @@ Epoch decomposition: train 3.76 s (32 steps) + validation 0.31 s = 4.07 s (valid
 - All measured stages at their isolated speedups (loading 1807x, preprocessing 17.3x, training step 27.6x, 'other' 5.3 % unchanged): generalized Amdahl S = 1 / sum(p_i / s_i) = **15.5x**.
 - Measured, same model, same Colab machine: 135x per steady epoch (`optimized_cnn` vs `exp_cache_cpu`). The prediction uses laptop-CPU fractions and speedups; on Colab the CPU has 1 core, which makes every CPU stage slower and the measured ratio larger: the two numbers are not from the same machine.
 - Measured end-to-end, final design, same machine: 65.4x per steady epoch, 60.7x for the 5-epoch training including one-time costs (the model is 3.6x more FLOPs per image at 224 px and 2x the pixels at 320 px).
+
+## Portability - frozen configuration on the RTX 4070 Laptop (Windows 11)
+
+train.py, 5 epochs, seeds 42-44, mean +/- std.
+
+| Machine / configuration | Steady epoch (s) | Cold epoch (s) | Train img/s | Wall 5 epochs (s) | Val acc | Val macro-F1 |
+|---|---|---|---|---|---|---|
+| Colab T4, Linux (`optimized*`) | 4.58 +/- 0.12 | 5.09 +/- 0.79 | 484 | 26.1 +/- 1.7 | 0.581 +/- 0.011 | 0.572 +/- 0.022 |
+| RTX 4070 Laptop, Windows, frozen config (`optimized_rtx*`) | 13.22 +/- 0.07 | 18.74 +/- 2.11 | 157 | 75.4 +/- 2.2 | 0.581 +/- 0.013 | 0.570 +/- 0.032 |
+| RTX 4070 Laptop, Windows, channels_last off (`optimized_rtx_nocl*`) | 3.83 +/- 0.02 | 11.35 +/- 1.61 | 575 | 31.3 +/- 2.3 | 0.595 +/- 0.019 | 0.588 +/- 0.027 |
+
+Same laptop, same GPU, synthetic data already on the GPU (training step of the final configuration, 3 x 40 steps; one BatchNorm2d fp16 64x64x160x160 forward + backward). `results/rtx4070/channels_last_{windows,wsl}.json`.
+
+| Platform | torch / cuDNN | Step AMP + channels_last (img/s) | Step AMP, NCHW (img/s) | channels_last speedup | BatchNorm NHWC cuDNN (ms) | BatchNorm NHWC native (ms) | Batch norm in the step (ms / GPU ms) |
+|---|---|---|---|---|---|---|---|
+| Windows 11 | 2.14.1+cu130 / 92400 | 154 | 570 | 0.27x | 131.4 | 16.6 | 341.3 / 405.7 |
+| WSL2 Ubuntu (Linux) | 2.14.1+cu130 / 92400 | 774 | 576 | 1.34x | 16.6 | 16.6 | 16.3 / 82.1 |
+
+- Windows 11, main batch-norm kernels: `_ZN5cudnn21bn_bw_1C11_singlereadI6__halfLi512ELb0ELi3ELi2ELi0EEEvNS_15` 125.7 ms; `_ZN5cudnn24bn_fw_tr_1C11_singlereadI6__halfLi512ELb0ELi2ELi2ELi0EEEvNS` 94.1 ms
+- WSL2 Ubuntu (Linux), main batch-norm kernels: `void cudnn::batchnorm_bwtr_nhwc_semiPersist<__half, float, __half, 512` 10.3 ms; `void cudnn::batchnorm_fwtr_nhwc_semiPersist<__half, float, __half, 512` 5.4 ms

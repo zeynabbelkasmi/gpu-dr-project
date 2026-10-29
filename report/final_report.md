@@ -61,7 +61,8 @@ only by `scripts/week4_test_eval.py` (section 7.3).
 # 3. Experimental environment (Table 1)
 
 Two machines were used. **Every speedup in this report compares two runs on the same machine**; when a
-table mixes machines, the machine is written next to the number.
+table mixes machines, the machine is written next to the number. Section 7.6 re-runs the frozen final
+configuration on machine L, under Windows and under WSL2 (Linux), to test portability.
 
 | Item | Machine L (Weeks 1–2) | Machine C (Weeks 3–4) |
 |---|---|---|
@@ -289,7 +290,8 @@ clearly defined combination), 3 seeds, same GPU session, the full configuration 
   8 TFLOPS fp32). In Week 3, while the run was input-bound, AMP alone gave nothing (8.20 vs 7.83 s): the
   same optimization is worth 0× or 4.5× depending on where the bottleneck is.
 - **`channels_last` 1.31×**: without it cuDNN inserts NCHW↔NHWC conversions around every Tensor-Core
-  convolution.
+  convolution. This gain holds on Linux only: on Windows the same flag makes the step 3.7× *slower*
+  (section 7.6).
 - **Resident data 1.23× and precompute 1.17×**: they remove per-epoch GPU preprocessing (23.7 ms/step in
   the profile) and the copies; with CPU preprocessing instead (`input_pipeline_off`, 3.70×) the single
   Colab core becomes the bottleneck again. Cost: +1.5 GB GPU memory, acceptable on 16 GB.
@@ -312,6 +314,41 @@ The baseline uses the CPU at ~55 % on average with large dips (workers waiting o
 at all. The optimized run keeps the **GPU at 95 % utilization** on average (nvidia-smi samples of `full_s42`; the dips are the
 validation pass and checkpoint saves), up to 3.9 GB of GPU memory (driver view) and 2.3 GB of host RAM;
 the single CPU core only launches kernels.
+
+## 7.6 Portability: the frozen configuration on the RTX 4070 Laptop
+
+`configs/optimized.yaml`, unchanged, trained on machine L (Windows 11, torch 2.14.1, cuDNN 9.24) with seeds
+42–44 (`results/optimized_rtx*/`), and the same with only `channels_last` off
+(`configs/exp_channels_last_off.yaml`, `results/optimized_rtx_nocl*/`). Means ± std from `results/tables.md`
+(section Portability):
+
+| Machine / configuration | Steady epoch (s) | Train img/s | 5 epochs, wall (s) | Val macro-F1 |
+|---|---|---|---|---|
+| Colab T4, Linux, frozen config (`optimized*`) | 4.58 ± 0.12 | 484 | 26.1 ± 1.7 | 0.572 ± 0.022 |
+| RTX 4070 Laptop, Windows, frozen config | **13.22 ± 0.07** | 157 | 75.4 ± 2.2 | 0.570 ± 0.032 |
+| RTX 4070 Laptop, Windows, `channels_last` off | **3.83 ± 0.02** | 575 | 31.3 ± 2.3 | 0.588 ± 0.027 |
+
+Quality reproduces (validation F1 0.570 vs 0.572, accuracy 0.581 on both), but the frozen configuration is
+**2.9× slower on the RTX than on the T4**, although the RTX is the faster GPU. Re-profiling located the
+cause (`benchmarks/bench_channels_last.py`: training step of the final configuration on data already on
+the GPU, then one BatchNorm layer alone; same laptop, same GPU, same torch 2.14.1 and cuDNN 9.24, only the
+operating system changes; `results/rtx4070/channels_last_{windows,wsl}.json`):
+
+| Same laptop and GPU | Step, AMP + `channels_last` | Step, AMP, NCHW | `channels_last` effect | BatchNorm fp16 NHWC, cuDNN / native | Batch norm in the step |
+|---|---|---|---|---|---|
+| Windows 11 | 154 img/s | 570 img/s | **0.27×** | 131.4 / 16.6 ms | 341 of 406 ms GPU (84 %) |
+| WSL2 Ubuntu (Linux) | 774 img/s | 576 img/s | **1.34×** | 16.6 / 16.6 ms | 16 of 82 ms GPU (20 %) |
+
+Under Windows, cuDNN runs NHWC batch norm with generic kernels (`bn_fw_tr_1C11_singleread`,
+`bn_bw_1C11_singleread`), 8× slower than PyTorch's own kernel on the same tensor; under Linux it uses the
+`batchnorm_*_nhwc_semiPersist` kernels, the same ones as on the T4 (`results/week4/profile_optimized/kernels.csv`).
+The tensors are NHWC in both cases, so the layout optimization itself is correct; what changes is which
+library kernel the platform provides. Swapping cuDNN 9.24 for 9.27, or PyTorch 2.14.1 for 2.11.0, under
+Windows did not change the kernel choice (exploratory runs, not kept in `results/`). Two consequences:
+(1) **`channels_last` is platform-dependent**: ×1.31 on the T4 and ×1.34 on the RTX under Linux, ×0.27 on
+the same RTX under Windows; (2) with `channels_last` off, the RTX trains 1.2× faster per steady epoch than
+the T4 (3.83 vs 4.58 s), but its cold epoch is longer (11.3 vs 5.1 s, not investigated), so the 5-epoch
+wall time stays above the T4's. These RTX numbers mix GPU and operating system and are not a GPU ranking.
 
 # 8. Discussion and critical analysis
 
@@ -350,7 +387,11 @@ selectable). Portability: the resident-data design needs the dataset to fit in G
 300,000 images, ~45 GB uint8: then cache + on-the-fly GPU preprocessing + prefetching is the right design).
 On a GPU with more fp32 throughput relative to fp16 (or without Tensor Cores), AMP would gain less;
 on a machine with many CPU cores, the CPU baseline would be ~2.3× faster and our speedup smaller
-(machine L: 86 s vs 285 s per baseline epoch). The added complexity is justified by the measured gains of
+(machine L: 86 s vs 285 s per baseline epoch). **Would the same strategy pay elsewhere? Measured for one
+flag (section 7.6):** `channels_last` gains 1.31× on the T4 and 1.34× on the RTX 4070 under Linux, but
+costs 3.7× on the same RTX under Windows, where cuDNN has no fast NHWC batch-norm kernel. A layout
+optimization is a bet on the kernels the platform provides, so it has to be re-measured on each target;
+the frozen configuration is the right choice for Linux, not for Windows. The added complexity is justified by the measured gains of
 AMP, channels_last, residency and precompute; it is *not* justified for fused AdamW and cuDNN autotuning,
 which we keep only because they cost nothing.
 
@@ -364,6 +405,9 @@ which we keep only because they cost nothing.
   other; every speedup quoted compares runs on one machine. Machine C's single CPU core makes the CPU
   baseline weak: the same baseline epoch takes 86 s on machine L's 8-core CPU vs 285 s here, so against a
   multi-core CPU the ratio would be roughly 3.3× smaller (an estimate, not a measurement).
+- **Portability.** The final configuration was re-run on one other machine only (section 7.6). There, the
+  Windows and Linux numbers differ by the operating system, not the GPU; the T4 vs RTX comparison also
+  differs by OS and PyTorch version, so it supports the `channels_last` conclusion, not a GPU ranking.
 - **Hardware state.** Colab assigns a different VM per session; the T4 SM clock read 825 MHz in P0 after
   warm-up (power/thermal capping is common on Colab). The ablation re-ran its reference in the same session
   for this reason; Week 3 and Week 4 numbers for the same config differ by 5 % (4.58 vs 4.35 s).
@@ -390,8 +434,9 @@ Future work, from the remaining profile: (1) replace the stem max-pool (12.5 % o
 backward is slow on the T4) by a strided convolution or test an NCHW pool inside the NHWC model;
 (2) fuse batch-norm + ReLU + add (35 % of GPU time is memory-bound) with `torch.compile` at this
 resolution, measuring the cold-epoch cost; (3) inference-only optimization (TensorRT / fp16 export);
-(4) an ordinal loss, since errors are between adjacent grades; (5) the same protocol on another GPU
-(the team's RTX 4070) to separate hardware-specific from general conclusions.
+(4) an ordinal loss, since errors are between adjacent grades; (5) the full protocol (end-to-end
+benchmark, ablation) on the RTX 4070 under Linux (WSL2): section 7.6 only re-ran the final configuration
+and isolated the `channels_last` effect.
 
 # 11. Reproducibility
 
@@ -407,6 +452,15 @@ python scripts/week4_test_eval.py                                       # sec. 7
 python benchmarks/benchmark_end_to_end.py --only optimized_gpu --epochs 2 --repeats 3
 python benchmarks/benchmark_end_to_end.py --only baseline_cpu --epochs 2 --cpu-repeats 2
 python scripts/make_figures.py                                          # figures + results/tables.md
+```
+
+Portability (section 7.6), on the RTX 4070 laptop:
+
+```
+python src/train.py --config configs/optimized.yaml --device cuda --run optimized_rtx --seed 42             # also _s43, _s44
+python src/train.py --config configs/exp_channels_last_off.yaml --device cuda --run optimized_rtx_nocl --seed 42   # also _s43, _s44
+python benchmarks/bench_channels_last.py --out results/rtx4070/channels_last_windows.json  # then under WSL2: ..._wsl.json
+python scripts/make_figures.py --only tables,metrics_json
 ```
 
 # Appendix — Checkpoint answers (A7.9) and defense questions (8E)
@@ -428,4 +482,6 @@ prefetcher, fused AdamW, cuDNN autotuning, and AMP while input-bound. (4) Qualit
 bottleneck: GPU compute — convolutions 50 %, batch norm 19 %, elementwise 17 %, max-pool 12.5 %; GPU idle
 0.4 %. (6) Reproducible elsewhere: correctness (bit-exact preprocessing, test metrics within seed noise),
 the bottleneck sequence and the Amdahl reasoning; hardware-dependent: absolute times, the 65× ratio
-(1-core Colab CPU), the size of the AMP gain (T4 Tensor Cores), memory headroom for resident data.
+(1-core Colab CPU), the size of the AMP gain (T4 Tensor Cores), memory headroom for resident data; and
+platform-dependent, measured: `channels_last` (×1.31 on the T4, ×1.34 on the RTX under Linux, ×0.27 on the
+same RTX under Windows, section 7.6). Classification quality reproduced on the RTX (val F1 0.570 vs 0.572).

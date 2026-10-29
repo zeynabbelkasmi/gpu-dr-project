@@ -95,16 +95,27 @@ ou à la main dans cet ordre :
 
 | Tâche | Commande | Sorties |
 |---|---|---|
+| **Pipeline optimisé** (config figée, 5 époques) | `python src/train_gpu.py` (= `python src/train.py --config configs/optimized.yaml --device cuda --run optimized --monitor`) ; autre seed : `--seed 43 --run optimized_s43` | `results/optimized/` |
 | Profil GPU de la config finale (A7.2-A7.4, A7.7) | `python benchmarks/profile_gpu.py --config configs/optimized.yaml` | `results/week4/profile_optimized/` (`summary.json`, `top_ops.txt`, `kernels.csv`, `timeline.png`, `trace.json`) |
 | Ablation, une optimisation coupée à la fois, 3 seeds (A7.6) | `python scripts/week4_ablation.py` | `results/week4/ablation.csv`, `ablation_runs.csv` |
 | Test set, **une seule fois**, config figée (A7.8) | `python scripts/week4_test_eval.py` | `results/week4/test_summary.csv`, `test_runs.csv`, `confusion_*.json` |
 | Bout en bout CPU vs GPU, même machine (A7.1, A7.5) | `python benchmarks/benchmark_end_to_end.py --epochs 2 --repeats 3 --cpu-repeats 2` | `results/week4/end_to_end.csv`, `end_to_end_runs.csv` |
-| Figures 1-6 et Tables 2-3 (A8) | `python scripts/make_figures.py` | `results/figures/fig*.png`, `results/tables.md` |
+| Figures 1-6 et Tables 2-3 (A8) | `python scripts/make_figures.py` (textes seuls : `--only tables,metrics_json`) | `results/figures/fig*.png`, `results/tables.md`, `results/metrics.json` |
 
 Les runs de la semaine 4 écrivent dans `results/week4/` et `checkpoints/week4/` : rien n'écrase les semaines 1-3.
 
-Rapports : [`report/week1_report.md`](report/week1_report.md) (baseline et goulots) et
-[`report/week2_report.md`](report/week2_report.md) (refonte et accélération GPU du traitement d'image).
+**Portabilité (RTX 4070 Laptop, Windows 11 et WSL2)**, même config figée, sur la machine des semaines 1-2 :
+
+| Tâche | Commande | Sorties |
+|---|---|---|
+| Config figée, 3 seeds | `python src/train.py --config configs/optimized.yaml --device cuda --run optimized_rtx --seed 42` (puis `_s43`, `_s44`) | `results/optimized_rtx*/` |
+| Même config sans `channels_last`, 3 seeds | `python src/train.py --config configs/exp_channels_last_off.yaml --device cuda --run optimized_rtx_nocl --seed 42` (puis `_s43`, `_s44`) | `results/optimized_rtx_nocl*/` |
+| `channels_last` / BatchNorm, Windows puis WSL2 | `python benchmarks/bench_channels_last.py --out results/rtx4070/channels_last_windows.json` (sous WSL2 : `..._wsl.json`) | `results/rtx4070/` |
+
+Rapports : [`report/week1_report.md`](report/week1_report.md) (baseline et goulots),
+[`report/week2_report.md`](report/week2_report.md) (refonte et accélération GPU du traitement d'image),
+[`report/week3_report.md`](report/week3_report.md) (pipeline GPU de bout en bout, refonte du modèle) et
+le rapport final [`report/final_report.md`](report/final_report.md) ([PDF](report/final_report.pdf)).
 Consignes de l'enseignant : [`ASSIGNMENTS.md`](ASSIGNMENTS.md), avancement : `python scripts/progress.py`.
 
 ### Problèmes connus
@@ -112,5 +123,9 @@ Consignes de l'enseignant : [`ASSIGNMENTS.md`](ASSIGNMENTS.md), avancement : `py
 - Le GPU d'un portable démarre en P8 (lien PCIe en Gen1) : les benchmarks GPU appellent `gpu_warmup()` avant de mesurer.
 - CuPy est optionnel : `cupy-cuda13x` pour un driver CUDA 13, `cupy-cuda12x` pour CUDA 12. S'il manque ou ne tourne pas avec le driver, les variantes CuPy du filtre médian sont sautées (tests et benchmark).
 - Les workers DataLoader utilisent `spawn` sous Windows : les transforms doivent être picklables (pas de lambda).
-- `tests/test_data_pipeline.py::test_prefetcher_yields_same_batches_on_device` échoue tant que `CudaPrefetcher` (semaine 3, A5.2) n'est pas écrit.
+- **`channels_last` est contre-productif sous Windows** : cuDNN y lance des noyaux BatchNorm génériques en NHWC
+  (131 ms contre 17 ms sous Linux pour la même couche), si bien que la config figée tourne plus lentement
+  sur la RTX 4070 sous Windows que sans `channels_last` (13,2 s contre 3,8 s par époque, ×3,5). Sous Linux (Colab, WSL2), `channels_last` fait gagner
+  ×1,3. Pour mesurer les temps sous Windows, utiliser WSL2 ou `configs/exp_channels_last_off.yaml`
+  (`results/tables.md`, section Portability).
 - L'image `2T2SALA702` des métadonnées est absente de l'archive Zenodo : 2 999 images utilisées.
