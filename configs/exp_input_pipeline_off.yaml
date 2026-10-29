@@ -1,0 +1,35 @@
+# Week 4 ablation (A7.6), defined COMBINATION: optimized.yaml with the whole GPU input pipeline
+# off: data.gpu_resident false AND preprocess.gpu false. CLAHE/crop/normalize run on the CPU in
+# the DataLoader workers (as in Week 2), the model and training recipe are unchanged.
+#   python scripts/week4_ablation.py
+seed: 42
+data:
+  root: data/dr_dataset     # teacher layout; unused while split_csv is set
+  split_csv: splits/splits.csv   # team split (StratifiedGroupKFold, patient-level, seed 42, 70/15/15).
+                                 # Images resolved through src/paths.py (FDR26_DATA). Same split for every run.
+  image_size: [320, 320]    # round 3: +0.025 val F1 (9 runs >= 320 px), 384 no better
+  num_classes: 5
+  train_frac: 0.70
+  val_frac: 0.15
+  batch_size: 64            # A6.7: best of 32/64/128 (round 2)
+  num_workers: 2            # unused with gpu_resident (no DataLoader)
+  cache_dir: data/cache
+  gpu_resident: false        # whole split in GPU memory: no loader, no per-epoch PCIe copy
+preprocess:
+  clahe: true
+  circular_crop: true
+  normalize: true
+  gamma: 1.0
+  gpu: false
+  precompute: true          # A5.9: deterministic preprocessing computed once
+train:
+  model: resnet18           # A6.6: +13 pts val acc vs reference_cnn (exp_resnet18 vs exp_cache_gpu)
+  epochs: 5
+  lr: 0.001
+  scheduler: cosine         # A6.9: best val F1 over 3 seeds (exp_r18_cosine)
+  amp: true                 # A6.1: autocast + GradScaler (-34 % GPU memory)
+  channels_last: true       # A6.2: keep only if the A7.6 ablation shows a gain
+  cudnn_benchmark: true
+  fused_adamw: true
+  weight_decay: 0.0
+  label_smoothing: 0.0

@@ -6,7 +6,8 @@ evidence exists (a notebook entry or a file in `results/`), delete the tag from 
 `python scripts/progress.py` counts the tags that remain. The full instructions are in
 `ASSIGNMENTS.md`.
 
-Evidence for every [x] step: `report/week1_report.md` (A1, A2) and `report/week2_report.md` (A3, A4).
+Evidence for every [x] step: `report/week1_report.md` (A1, A2), `report/week2_report.md` (A3, A4),
+`report/week3_report.md` (A5, A6) and `report/final_report.md` (A7, A8; Week 4 files in `results/week4/`).
 
 ## A1. Baseline execution and verification
 
@@ -44,28 +45,28 @@ Evidence for every [x] step: `report/week1_report.md` (A1, A2) and `report/week2
 
 ## A5. End-to-end input pipeline
 
-- TODO(A5.9) Compare precomputed preprocessing with on-the-fly GPU preprocessing in storage and memory, and decide with numbers.
-- TODO(A5.10) Compute the bytes per epoch that cross PCIe with CPU preprocessing and with GPU preprocessing.
-- TODO(A5.11) Answer the A5 checkpoint questions.
+- [x] A5.9 Compare precomputed preprocessing with on-the-fly GPU preprocessing in storage and memory, and decide with numbers.
+- [x] A5.10 Compute the bytes per epoch that cross PCIe with CPU preprocessing and with GPU preprocessing.
+- [x] A5.11 Answer the A5 checkpoint questions.
 
 ## A6. Training acceleration and model redesign
 
-- TODO(A6.8) Complete `configs/optimized.yaml` and write the single-change `configs/exp_*.yaml` files.
-- TODO(A6.9) Work through the five parts of the redesign challenge and fill the experiment table (model, device, precision, preprocessing, epoch time, memory, validation macro-F1).
-- TODO(A6.10) Separate the device effect, the model effect and the training-recipe effect with controlled runs.
-- TODO(A6.11) Answer the A6 checkpoint questions.
+- [x] A6.8 Complete `configs/optimized.yaml` and write the single-change `configs/exp_*.yaml` files.
+- [x] A6.9 Work through the five parts of the redesign challenge and fill the experiment table (model, device, precision, preprocessing, epoch time, memory, validation macro-F1).
+- [x] A6.10 Separate the device effect, the model effect and the training-recipe effect with controlled runs.
+- [x] A6.11 Answer the A6 checkpoint questions.
 
 ## A7. Final benchmarking and GPU profiling
 
-- TODO(A7.5) Run the benchmark protocol: warm-up, synchronization, 3 or more repeats, mean and standard deviation, cold and steady epochs.
-- TODO(A7.6) Run the ablation, one optimization off at a time (at least three), with `configs/exp_<name>_off.yaml`.
-- TODO(A7.7) Re-profile the final version and say whether the bottleneck moved.
-- TODO(A7.8) Run `src/evaluate.py` once for the baseline and once for the final model.
-- TODO(A7.9) Answer the A7 checkpoint questions.
+- [x] A7.5 Run the benchmark protocol: warm-up, synchronization, 3 or more repeats, mean and standard deviation, cold and steady epochs.
+- [x] A7.6 Run the ablation, one optimization off at a time (at least three), with `configs/exp_<name>_off.yaml`.
+- [x] A7.7 Re-profile the final version and say whether the bottleneck moved.
+- [x] A7.8 Run `src/evaluate.py` once for the baseline and once for the final model.
+- [x] A7.9 Answer the A7 checkpoint questions.
 
 ## A8. Figures, tables, report and defense
 
-- TODO(A8.9) Write `report/final_report.md` and render `report/final_report.pdf`.
-- TODO(A8.10) Answer the questions of section 9 of the brief and write the limits of section 10.
-- TODO(A8.11) Complete Table 1 in the report.
-- TODO(A8.12) Prepare the defense and answer the six questions of section 8E of the brief.
+- [x] A8.9 Write `report/final_report.md` and render `report/final_report.pdf`.
+- [x] A8.10 Answer the questions of section 9 of the brief and write the limits of section 10.
+- [x] A8.11 Complete Table 1 in the report.
+- [x] A8.12 Prepare the defense and answer the six questions of section 8E of the brief.

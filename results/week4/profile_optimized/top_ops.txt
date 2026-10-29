@@ -1,0 +1,36 @@
+-------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  
+                                                   Name    Self CPU %      Self CPU   CPU total %     CPU total  CPU time avg     Self CUDA   Self CUDA %    CUDA total  CUDA time avg    # of Calls  
+-------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  
+                                                forward         0.00%       0.000us         0.00%       0.000us       0.000us     628.033ms        30.57%     628.033ms      41.869ms            15  
+                             aten::convolution_backward         0.74%      25.206ms        24.01%     822.636ms       2.742ms     579.957ms        28.23%     579.957ms       1.933ms           300  
+                                aten::cudnn_convolution         0.40%      13.554ms         1.08%      36.911ms     123.036us     294.728ms        14.35%     427.129ms       1.424ms           300  
+void cudnn::batchnorm_bwtr_nhwc_semiPersist<__half, ...         0.00%       0.000us         0.00%       0.000us       0.000us     226.521ms        11.03%     226.521ms     838.965us           270  
+                                    Command Buffer Full        41.78%        1.432s        41.78%        1.432s     674.963us     214.580ms        10.44%     214.580ms     101.169us          2121  
+                        aten::cudnn_batch_norm_backward         0.32%      10.823ms         5.85%     200.489ms     668.296us     197.884ms         9.63%     197.884ms     659.615us           300  
+void at::native::(anonymous namespace)::max_pool_bac...         0.00%       0.000us         0.00%       0.000us       0.000us     153.704ms         7.48%     153.704ms       8.539ms            18  
+void at::native::vectorized_elementwise_kernel<4, at...         0.00%       0.000us         0.00%       0.000us       0.000us     128.931ms         6.28%     128.931ms     447.677us           288  
+                 aten::max_pool2d_with_indices_backward         0.01%     373.631us         0.09%       3.130ms     208.674us     127.957ms         6.23%     141.476ms       9.432ms            15  
+                                 aten::cudnn_batch_norm         0.39%      13.455ms         2.16%      74.060ms     246.866us     125.623ms         6.11%     148.309ms     494.363us           300  
+void cudnn::batchnorm_fwtr_nhwc_semiPersist<__half, ...         0.00%       0.000us         0.00%       0.000us       0.000us     121.609ms         5.92%     121.609ms     715.349us           170  
+_5x_cudnn_turing_s1688cudnn_fp16_64x64_sliced1x4_ldg...         0.00%       0.000us         0.00%       0.000us       0.000us     111.819ms         5.44%     111.819ms       1.553ms            72  
+sm75_xmma_fprop_implicit_gemm_f16f16_f16f32_f32_nhwc...         0.00%       0.000us         0.00%       0.000us       0.000us     110.136ms         5.36%     110.136ms     809.822us           136  
+                               aten::threshold_backward         0.13%       4.579ms         2.62%      89.831ms     352.277us     109.429ms         5.33%     109.429ms     429.134us           255  
+sm75_xmma_dgrad_implicit_gemm_f16f16_f16f32_f32_nhwc...         0.00%       0.000us         0.00%       0.000us       0.000us     102.247ms         4.98%     102.247ms     946.733us           108  
+void at::native::(anonymous namespace)::max_pool_for...         0.00%       0.000us         0.00%       0.000us       0.000us     100.660ms         4.90%     100.660ms       5.921ms            17  
+sm75_xmma_dgrad_implicit_gemm_f16f16_f16f32_f32_nhwc...         0.00%       0.000us         0.00%       0.000us       0.000us      99.396ms         4.84%      99.396ms       1.381ms            72  
+void at::native::vectorized_elementwise_kernel<4, at...         0.00%       0.000us         0.00%       0.000us       0.000us      92.434ms         4.50%      92.434ms     328.947us           281  
+                          aten::max_pool2d_with_indices         0.01%     374.523us         0.01%     504.288us      33.619us      88.813ms         4.32%      88.813ms       5.921ms            15  
+sm75_xmma_fprop_implicit_gemm_f16f16_f16f32_f32_nhwc...         0.00%       0.000us         0.00%       0.000us       0.000us      86.999ms         4.23%      86.999ms       1.279ms            68  
+void at::native::vectorized_elementwise_kernel<4, at...         0.00%       0.000us         0.00%       0.000us       0.000us      84.223ms         4.10%      84.223ms     290.425us           290  
+                                             aten::add_         0.33%      11.169ms         2.76%      94.737ms     175.439us      79.751ms         3.88%      93.688ms     173.496us           540  
+                                       aten::clamp_min_         0.09%       2.946ms         1.05%      35.961ms     141.025us      74.266ms         3.61%      88.038ms     345.248us           255  
+sm75_xmma_wgrad_implicit_gemm_indexed_f16f16_f16f32_...         0.00%       0.000us         0.00%       0.000us       0.000us      61.907ms         3.01%      61.907ms     859.824us            72  
+volta_first_layer_filter7x7_wgrad_execute_flt_k_64_u...         0.00%       0.000us         0.00%       0.000us       0.000us      59.835ms         2.91%      59.835ms       3.324ms            18  
+sm75_xmma_wgrad_implicit_gemm_indexed_f16f16_f16f32_...         0.00%       0.000us         0.00%       0.000us       0.000us      57.038ms         2.78%      57.038ms     792.192us            72  
+_5x_cudnn_turing_s1688cudnn_fp16_128x128_ldg8_wgrad_...         0.00%       0.000us         0.00%       0.000us       0.000us      52.450ms         2.55%      52.450ms     971.287us            54  
+_5x_cudnn_turing_fp16_s1688cudnn_fp16_256x128_ldg8_r...         0.00%       0.000us         0.00%       0.000us       0.000us      51.312ms         2.50%      51.312ms       1.006ms            51  
+sm75_xmma_fprop_image_first_layer_f16f16_f32_f16_nhw...         0.00%       0.000us         0.00%       0.000us       0.000us      49.457ms         2.41%      49.457ms       2.909ms            17  
+sm75_xmma_dgrad_implicit_gemm_indexed_f16f16_f16f32_...         0.00%       0.000us         0.00%       0.000us       0.000us      48.978ms         2.38%      48.978ms     906.992us            54  
+-------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  
+Self CPU time total: 3.426s
+Self CUDA time total: 2.054s

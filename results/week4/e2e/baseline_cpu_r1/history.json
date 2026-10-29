@@ -1,0 +1,83 @@
+{
+  "run": "baseline_cpu_r1",
+  "config": "configs/baseline.yaml",
+  "cfg": {
+    "seed": 42,
+    "data": {
+      "root": "data/dr_dataset",
+      "split_csv": "splits/splits.csv",
+      "image_size": [
+        224,
+        224
+      ],
+      "num_classes": 5,
+      "train_frac": 0.7,
+      "val_frac": 0.15,
+      "batch_size": 32,
+      "num_workers": 2
+    },
+    "preprocess": {
+      "clahe": true,
+      "circular_crop": true,
+      "normalize": true,
+      "gamma": 1.0
+    },
+    "train": {
+      "model": "reference_cnn",
+      "epochs": 2,
+      "lr": 0.001,
+      "amp": false,
+      "weight_decay": 0.0,
+      "label_smoothing": 0.0
+    }
+  },
+  "device": "cpu",
+  "gpu_preprocess": false,
+  "augment": false,
+  "amp": false,
+  "channels_last": false,
+  "compile": false,
+  "prefetch_gpu": false,
+  "gpu_resident": false,
+  "precompute": false,
+  "fused_adamw": false,
+  "cudnn_benchmark": false,
+  "splits": {
+    "train": 2099,
+    "val": 450,
+    "test": 450
+  },
+  "setup_time_s": 0.2722749449994808,
+  "wall_time_s": 568.5729694309994,
+  "cold_epoch_s": 283.4070417089997,
+  "steady_epoch_s": 284.8852122930002,
+  "best_val_acc": 0.3,
+  "history": [
+    {
+      "epoch": 0,
+      "train_loss": 1.5835120567908654,
+      "train_acc": 0.2375,
+      "val_loss": 1.5347639973958334,
+      "val_acc": 0.2822222222222222,
+      "val_f1": 0.19190096855163574,
+      "train_time_s": 247.6065243160001,
+      "val_time_s": 35.80051739299961,
+      "train_imgs_per_s": 8.400424850459371,
+      "val_imgs_per_s": 12.569650741639629,
+      "gpu_peak_mem_mb": null
+    },
+    {
+      "epoch": 1,
+      "train_loss": 1.5547872690054088,
+      "train_acc": 0.26346153846153847,
+      "val_loss": 1.5116585286458333,
+      "val_acc": 0.3,
+      "val_f1": 0.21787357330322266,
+      "train_time_s": 249.29163703299946,
+      "val_time_s": 35.59357526000076,
+      "train_imgs_per_s": 8.343641306044551,
+      "val_imgs_per_s": 12.642731074720094,
+      "gpu_peak_mem_mb": null
+    }
+  ]
+}

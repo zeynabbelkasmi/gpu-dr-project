@@ -88,6 +88,21 @@ Vérifier ensuite : `python -c "import torch; print(torch.cuda.is_available())"`
 | Figures des rapports | `python scripts/make_week_figures.py` | `results/figures/` |
 | Tests (équivalence CPU/GPU incluse) | `python -m pytest tests -v` | |
 
+### Semaine 4 (A7, A8) — profilage GPU, ablation, test final, figures
+
+Tout se lance sur Colab T4 avec [`notebooks/week4_colab.ipynb`](notebooks/week4_colab.ipynb) (Partie A puis Partie B),
+ou à la main dans cet ordre :
+
+| Tâche | Commande | Sorties |
+|---|---|---|
+| Profil GPU de la config finale (A7.2-A7.4, A7.7) | `python benchmarks/profile_gpu.py --config configs/optimized.yaml` | `results/week4/profile_optimized/` (`summary.json`, `top_ops.txt`, `kernels.csv`, `timeline.png`, `trace.json`) |
+| Ablation, une optimisation coupée à la fois, 3 seeds (A7.6) | `python scripts/week4_ablation.py` | `results/week4/ablation.csv`, `ablation_runs.csv` |
+| Test set, **une seule fois**, config figée (A7.8) | `python scripts/week4_test_eval.py` | `results/week4/test_summary.csv`, `test_runs.csv`, `confusion_*.json` |
+| Bout en bout CPU vs GPU, même machine (A7.1, A7.5) | `python benchmarks/benchmark_end_to_end.py --epochs 2 --repeats 3 --cpu-repeats 2` | `results/week4/end_to_end.csv`, `end_to_end_runs.csv` |
+| Figures 1-6 et Tables 2-3 (A8) | `python scripts/make_figures.py` | `results/figures/fig*.png`, `results/tables.md` |
+
+Les runs de la semaine 4 écrivent dans `results/week4/` et `checkpoints/week4/` : rien n'écrase les semaines 1-3.
+
 Rapports : [`report/week1_report.md`](report/week1_report.md) (baseline et goulots) et
 [`report/week2_report.md`](report/week2_report.md) (refonte et accélération GPU du traitement d'image).
 Consignes de l'enseignant : [`ASSIGNMENTS.md`](ASSIGNMENTS.md), avancement : `python scripts/progress.py`.
