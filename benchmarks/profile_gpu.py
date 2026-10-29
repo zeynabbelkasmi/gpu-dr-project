@@ -177,16 +177,22 @@ def analyze_trace(trace_path, n_steps):
     ev = [e for e in ev if e.get("ph") == "X" and "dur" in e]
     steps = sorted((e for e in ev if str(e.get("name", "")).startswith("ProfilerStep#")),
                    key=lambda e: e["ts"])
-    gpu = [e for e in ev if e.get("cat") in ("kernel", "gpu_memcpy", "gpu_memset")]
+    for e in ev:                      # category names changed case across torch versions
+        e["cat"] = str(e.get("cat", "")).lower()
+    gpu = [e for e in ev if e["cat"] in ("kernel", "gpu_memcpy", "gpu_memset", "memcpy", "memset")]
+    for e in gpu:
+        e["cat"] = {"memcpy": "gpu_memcpy", "memset": "gpu_memset"}.get(e["cat"], e["cat"])
     if not steps or not gpu:
-        raise RuntimeError("trace has no ProfilerStep or no GPU events: is CUDA profiling active?")
+        from collections import Counter
+        raise RuntimeError(f"trace has {len(steps)} ProfilerStep and {len(gpu)} GPU events; "
+                           f"event categories: {Counter(e['cat'] for e in ev).most_common(12)}")
     t0 = steps[0]["ts"]
     t1 = max(steps[-1]["ts"] + steps[-1]["dur"], max(e["ts"] + e["dur"] for e in gpu))
     wall = t1 - t0
     gpu = [e for e in gpu if e["ts"] >= t0 - 1]
-    kern = [e for e in gpu if e.get("cat") == "kernel"]
-    memcpy = [e for e in gpu if e.get("cat") == "gpu_memcpy"]
-    memset = [e for e in gpu if e.get("cat") == "gpu_memset"]
+    kern = [e for e in gpu if e["cat"] == "kernel"]
+    memcpy = [e for e in gpu if e["cat"] == "gpu_memcpy"]
+    memset = [e for e in gpu if e["cat"] == "gpu_memset"]
 
     def kind(e):
         n = e.get("name", "")
@@ -326,19 +332,29 @@ def main():
 
     # 2) torch.profiler, asynchronous like training
     trace = os.path.join(out, "trace.json")
+    # repeat=1: ONE warmup+active cycle. With the default repeat=0 the schedule starts a new
+    # cycle after the active steps and the events of the finished cycle are dropped unless they
+    # are handled in on_trace_ready, so the trace is exported there, at the end of the cycle.
+    got = {}
+
+    def on_ready(p):
+        p.export_chrome_trace(trace)
+        try:
+            got["table"] = p.key_averages().table(sort_by="self_device_time_total", row_limit=30)
+        except Exception:
+            got["table"] = p.key_averages().table(sort_by="self_cuda_time_total", row_limit=30)
+
     with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
-                 schedule=schedule(wait=0, warmup=args.warmup, active=args.steps),
-                 record_shapes=False) as prof:
+                 schedule=schedule(wait=0, warmup=args.warmup, active=args.steps, repeat=1),
+                 on_trace_ready=on_ready, record_shapes=False) as prof:
         for _ in range(args.warmup + args.steps):
             x, y = next(it)
             train_step(S, x, y, device)
             prof.step()
     torch.cuda.synchronize()
-    prof.export_chrome_trace(trace)
-    try:
-        table = prof.key_averages().table(sort_by="self_device_time_total", row_limit=30)
-    except Exception:
-        table = prof.key_averages().table(sort_by="self_cuda_time_total", row_limit=30)
+    if "table" not in got:            # older torch: no callback fired, export what is recorded
+        on_ready(prof)
+    table = got["table"]
     open(os.path.join(out, "top_ops.txt"), "w").write(table)
     summ, names, ev, steps, gpu = analyze_trace(trace, args.steps)
     with open(os.path.join(out, "kernels.csv"), "w") as f:
