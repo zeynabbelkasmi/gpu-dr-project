@@ -134,12 +134,13 @@ CATEGORIES = [  # (category, substrings of the kernel name, lower case); first m
     ("pooling", ("pool",)),
     ("AMP scaler", ("_amp_", "non_finite", "unscale", "amp_update_scale")),
     ("optimizer (AdamW)", ("adam", "multi_tensor", "foreach")),
-    ("data (index/gather, preprocess)", ("index", "gather", "randperm", "scatter", "histc",
-                                         "grid_sampler", "sort", "cumsum")),
+    # conv before data: cuDNN names contain "indexed" (implicit_gemm_indexed), "idx"
     ("conv (cuDNN)", ("conv", "implicit_gemm", "xmma", "fprop", "dgrad", "wgrad", "winograd",
                       "cudnn", "precomputed_convolve", "scudnn", "hcudnn", "s1688", "h1688", "s884",
-                      "h884", "cutlass")),
+                      "h884", "cutlass", "first_layer_filter")),
     ("gemm (fc)", ("gemm", "gemv", "cublas")),
+    ("data (index/gather, preprocess)", ("index", "gather", "randperm", "scatter", "histc",
+                                         "grid_sampler", "sort", "cumsum")),
     ("elementwise / activation", ("elementwise", "vectorized", "relu", "threshold", "add_kernel",
                                   "mul_kernel", "copy", "cast", "fill")),
     ("reduction / loss", ("reduce", "softmax", "nll", "log_softmax", "cross_entropy", "argmax",
@@ -289,6 +290,27 @@ def plot_timeline(path, ev, steps, gpu, n_show=2):
     plt.close(fig)
 
 
+def recategorize(d):
+    """Re-apply CATEGORIES to an existing profile (kernel names are in kernels.csv)."""
+    import pandas as pd
+    import re
+    rows = []
+    for line in open(os.path.join(d, "kernels.csv")).read().splitlines()[1:]:
+        m = re.match(r'^"(.*)",(.*),([-\d.e]+),([-\d.e]+),([-\d.e]+)$', line)
+        rows.append({"kernel": m.group(1), "total_ms_per_step": float(m.group(3)),
+                     "count_per_step": float(m.group(4)), "mean_us": float(m.group(5))})
+    k = pd.DataFrame(rows)
+    k["category"] = k.kernel.map(category)
+    k[["kernel", "category", "total_ms_per_step", "count_per_step", "mean_us"]].to_csv(
+        os.path.join(d, "kernels.csv"), index=False)
+    by = k.groupby("category").total_ms_per_step.sum().sort_values(ascending=False)
+    s = json.load(open(os.path.join(d, "summary.json")))
+    s["profiler"]["kernel_categories_ms_per_step"] = by.to_dict()
+    s["profiler"]["kernel_categories_share"] = (by / by.sum()).to_dict()
+    save_json(s, os.path.join(d, "summary.json"))
+    print(d, (100 * by / by.sum()).round(1).to_dict())
+
+
 # ----------------------------------------------------------------------------- main
 def main():
     ap = argparse.ArgumentParser()
@@ -298,7 +320,11 @@ def main():
     ap.add_argument("--phase-steps", type=int, default=20, help="synchronized phase timing steps")
     ap.add_argument("--no-epochs", action="store_true", help="skip the epoch decomposition")
     ap.add_argument("--out", default=None, help="default results/week4/profile_<config>")
+    ap.add_argument("--recategorize", default=None, metavar="DIR",
+                    help="only recompute the kernel categories of DIR/summary.json from DIR/kernels.csv")
     args = ap.parse_args()
+    if args.recategorize:
+        return recategorize(args.recategorize)
     if not torch.cuda.is_available():
         sys.exit("profile_gpu needs a CUDA GPU (Colab: Runtime > Change runtime type > T4 GPU)")
     name = os.path.splitext(os.path.basename(args.config))[0]
@@ -357,11 +383,13 @@ def main():
     table = got["table"]
     open(os.path.join(out, "top_ops.txt"), "w").write(table)
     summ, names, ev, steps, gpu = analyze_trace(trace, args.steps)
-    with open(os.path.join(out, "kernels.csv"), "w") as f:
-        f.write("kernel,category,total_ms_per_step,count_per_step,mean_us\n")
+    import csv
+    with open(os.path.join(out, "kernels.csv"), "w", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["kernel", "category", "total_ms_per_step", "count_per_step", "mean_us"])
         for k, (dur, cnt) in names:
-            f.write(f"\"{k.replace(chr(34), chr(39))}\",{category(k)},{dur / 1e3 / args.steps:.4f},"
-                    f"{cnt / args.steps:.2f},{dur / cnt:.2f}\n")
+            w.writerow([k, category(k), f"{dur / 1e3 / args.steps:.4f}", f"{cnt / args.steps:.2f}",
+                        f"{dur / cnt:.2f}"])
     plot_timeline(os.path.join(out, "timeline.png"), ev, steps, gpu)
 
     # 3) synchronized phase timing

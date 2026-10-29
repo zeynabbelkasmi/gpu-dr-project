@@ -1,0 +1,78 @@
+{
+  "run": "optimized_gpu_rwarmup",
+  "config": "configs/optimized.yaml",
+  "cfg": {
+    "seed": 42,
+    "data": {
+      "root": "data/dr_dataset",
+      "split_csv": "splits/splits.csv",
+      "image_size": [
+        320,
+        320
+      ],
+      "num_classes": 5,
+      "train_frac": 0.7,
+      "val_frac": 0.15,
+      "batch_size": 64,
+      "num_workers": 2,
+      "cache_dir": "data/cache",
+      "gpu_resident": true
+    },
+    "preprocess": {
+      "clahe": true,
+      "circular_crop": true,
+      "normalize": true,
+      "gamma": 1.0,
+      "gpu": true,
+      "precompute": true
+    },
+    "train": {
+      "model": "resnet18",
+      "epochs": 1,
+      "lr": 0.001,
+      "scheduler": "cosine",
+      "amp": true,
+      "channels_last": true,
+      "cudnn_benchmark": true,
+      "fused_adamw": true,
+      "weight_decay": 0.0,
+      "label_smoothing": 0.0
+    }
+  },
+  "device": "cuda",
+  "gpu_preprocess": true,
+  "augment": false,
+  "amp": true,
+  "channels_last": true,
+  "compile": false,
+  "prefetch_gpu": false,
+  "gpu_resident": true,
+  "precompute": true,
+  "fused_adamw": true,
+  "cudnn_benchmark": true,
+  "splits": {
+    "train": 2099,
+    "val": 450,
+    "test": 450
+  },
+  "setup_time_s": 3.7486765509993347,
+  "wall_time_s": 9.945868036999855,
+  "cold_epoch_s": 6.131096962000811,
+  "steady_epoch_s": 6.131096962000811,
+  "best_val_acc": 0.5355555555555556,
+  "history": [
+    {
+      "epoch": 0,
+      "train_loss": 1.259222149848938,
+      "train_acc": 0.43603515625,
+      "val_loss": 1.2524254014756944,
+      "val_acc": 0.5355555555555556,
+      "val_f1": 0.508548378944397,
+      "train_time_s": 5.643321217000448,
+      "val_time_s": 0.4877757450003628,
+      "train_imgs_per_s": 362.906863042001,
+      "val_imgs_per_s": 922.5550975267647,
+      "gpu_peak_mem_mb": 3403.86328125
+    }
+  ]
+}

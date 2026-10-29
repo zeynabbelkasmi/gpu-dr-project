@@ -1,0 +1,102 @@
+{
+  "config": "configs/optimized.yaml",
+  "gpu": "Tesla T4",
+  "torch": "2.11.0+cu130",
+  "gpu_state_after_warmup": {
+    "pcie_gen": 3,
+    "pcie_width": 16,
+    "sm_clock_mhz": 825,
+    "pstate": "P0"
+  },
+  "flags": {
+    "amp": true,
+    "channels_last": true,
+    "gpu_preprocess": true,
+    "gpu_resident": true,
+    "precompute": true,
+    "prefetch_gpu": false,
+    "fused_adamw": true,
+    "augment": false,
+    "cudnn_benchmark": true,
+    "batch_size": 64,
+    "image_size": [
+      320,
+      320
+    ],
+    "model": "resnet18"
+  },
+  "setup_s": 3.6958246240001245,
+  "step_ms_unsynchronized": 116.32218940000409,
+  "imgs_per_s_train_step": 550.1959714661092,
+  "profiler": {
+    "profiled_steps": 15,
+    "wall_ms_per_step": 137.56266787109374,
+    "gpu_busy_ms_per_step": 136.96430188802086,
+    "gpu_idle_fraction": 0.004349770125377517,
+    "kernel_ms_per_step": 136.01130486666668,
+    "kernels_per_step": 350.6,
+    "mean_kernel_us": 387.938690435444,
+    "memcpy": {
+      "d2d": {
+        "ms_per_step": 0.006587533333333336,
+        "bytes_per_step": 78652.8,
+        "count_per_step": 3.6
+      }
+    },
+    "memset_ms_per_step": 0.9464136666666666,
+    "kernel_categories_ms_per_step": {
+      "conv (cuDNN)": 67.8296,
+      "batch norm": 25.2717,
+      "elementwise / activation": 23.092299999999998,
+      "pooling": 16.9576,
+      "optimizer (AdamW)": 1.9484,
+      "AMP scaler": 0.459,
+      "data (index/gather, preprocess)": 0.3816,
+      "reduction / loss": 0.0648,
+      "gemm (fc)": 0.0066
+    },
+    "kernel_categories_share": {
+      "conv (cuDNN)": 0.49870452226133655,
+      "batch norm": 0.18580547541533224,
+      "elementwise / activation": 0.1697818421369942,
+      "pooling": 0.12467760102814761,
+      "optimizer (AdamW)": 0.0143252487287849,
+      "AMP scaler": 0.0033747121569042645,
+      "data (index/gather, preprocess)": 0.002805643048092957,
+      "reduction / loss": 0.00047642995156295495,
+      "gemm (fc)": 4.8525272844375044e-05
+    },
+    "cpu_annotation_ms_per_step": {
+      "h2d+preprocess": 0.09633040000000001,
+      "forward": 21.717090866666673,
+      "backward": 93.25598853333334,
+      "optimizer": 1.3695734666666668
+    },
+    "gpu_gaps_over_50us": {
+      "count_per_step": 0.06666666666666667,
+      "total_ms_per_step": 0.03549462890625,
+      "max_ms": 0.53241943359375
+    }
+  },
+  "phases_ms_synchronized": {
+    "data": 0.764830149955742,
+    "forward": 42.8601302000061,
+    "backward": 74.0897517000576,
+    "optimizer": 2.576218149943088
+  },
+  "phases_share_synchronized": {
+    "data": 0.0063581697197315394,
+    "forward": 0.3563039219063205,
+    "backward": 0.6159213464963352,
+    "optimizer": 0.021416561877612702
+  },
+  "epoch": {
+    "train_epoch_s": 3.7604655739996815,
+    "val_epoch_s": 0.30964703600056964,
+    "epoch_s": 4.070112610000251,
+    "train_steps": 32,
+    "train_steps_x_step_time_s": 3.722310060800131,
+    "val_share": 0.07607824786954741
+  },
+  "peak_gpu_mem_mb": 3403.8623046875
+}
