@@ -24,8 +24,12 @@ Main measured results:
 
 - **End-to-end, same machine (Colab, Tesla T4 + 1-core CPU): 60.7× faster** for the full 5-epoch training
   (1,427.5 s → 23.5 s) and **65.4× per steady epoch** (285.4 s → 4.36 s), `results/week4/end_to_end.csv`.
+  The 60.7× assumes the decoded-image cache is already on disk; the very first run, which also builds
+  it, is ≈ 10.6× faster (≈ 135 s, section 7.1).
 - **Test set (used once, 3 seeds): macro-F1 0.313 ± 0.010 → 0.590 ± 0.021**, accuracy 0.357 → 0.598,
-  `results/week4/test_summary.csv`. Most remaining errors are between adjacent grades.
+  `results/week4/test_summary.csv`. Most remaining errors are between adjacent grades: 94 % of the
+  final model's predictions are within one grade of the truth (baseline 64 %), quadratic weighted
+  kappa 0.33 → 0.84 (`results/week4/ordinal_metrics.csv`, section 7.3).
 - **Final GPU profile: the GPU is idle 0.4 % of the time** and 0.6 % of a step is data handling: the
   pipeline is now limited by the T4's convolution, batch-norm and pooling kernels, not by the input path
   (`results/week4/profile_optimized/summary.json`).
@@ -43,7 +47,8 @@ preprocessing, and finally to GPU convolution compute, where it is now.
 listed, 2,999 present (`2T2SALA702` is missing from the archive), source resolution 4.9–10.5 Mpx JPEG.
 **Splits** (`splits/splits.csv`, versioned, identical for every run): patient-level StratifiedGroupKFold,
 seed 42, 70/15/15 → **2,099 / 450 / 450** images; no patient appears in two splits (checked in Week 1).
-Classes are balanced inside each split.
+Classes are only approximately balanced: 504 / 701 / 583 / 632 / 579 images for grades 0–4 (DR1 has
+1.39× as many as DR0); stratification keeps the same proportions in every split (`report/week1_report.md`).
 
 **CPU reference pipeline** (modules A–E of the brief, diagram in `docs/pipeline.md`):
 
@@ -60,19 +65,21 @@ only by `scripts/week4_test_eval.py` (section 7.3).
 
 # 3. Experimental environment (Table 1)
 
-Two machines were used. **Every speedup in this report compares two runs on the same machine**; when a
-table mixes machines, the machine is written next to the number. Section 7.6 re-runs the frozen final
-configuration on machine L, under Windows and under WSL2 (Linux), to test portability.
+Two machines were used for every measurement. **Every speedup in this report compares two runs on the
+same machine**; when a table mixes machines, the machine is written next to the number. Section 7.6 re-runs
+the frozen final configuration on machine L, under Windows and under WSL2 (Linux), to test portability.
+A third machine, K (Kaggle), was used only for the final test suite and the CLAHE on/off check of
+section 7.7: both compare quality within one session, and no speed claim is made from it.
 
-| Item | Machine L (Weeks 1–2) | Machine C (Weeks 3–4) |
-|---|---|---|
-| CPU | AMD Ryzen 7 8845HS, 8 cores / 16 threads | Colab VM, **1 physical core / 2 threads** |
-| RAM | 16 GB | 14 GB |
-| GPU | RTX 4070 Laptop, 8 GB, CC 8.9, 36 SMs | **Tesla T4, 15.6 GB, CC 7.5, 40 SMs**, driver 580.82 |
-| OS | Windows 11 Home | Linux 6.6 (Colab) |
-| Python / PyTorch / CUDA / cuDNN | 3.14.6 / 2.14.1+cu130 / 13.0 / 9.24 | 3.13.16 / 2.11.0+cu130 / 13.0 / 9.27 |
-| OpenCV / NumPy / scikit-learn | 5.0.0 / 2.5.2 / 1.9.1 | 5.0.0 / 2.1.3 / 1.6.1 |
-| Source | `environment/hardware_software.md` | `results/week4/environment.json` |
+| Item | Machine L (Weeks 1–2) | Machine C (Weeks 3–4) | Machine K (final checks) |
+|---|---|---|---|
+| CPU | AMD Ryzen 7 8845HS, 8 cores / 16 threads | Colab VM, **1 physical core / 2 threads** | Kaggle VM, 2 physical cores / 4 threads |
+| RAM | 16 GB | 14 GB | 34 GB |
+| GPU | RTX 4070 Laptop, 8 GB, CC 8.9, 36 SMs | **Tesla T4, 15.6 GB, CC 7.5, 40 SMs**, driver 580.82 | Tesla T4 (2 present, 1 used), CC 7.5, driver 580.178 |
+| OS | Windows 11 Home | Linux 6.6 (Colab) | Linux 6.18 (Kaggle) |
+| Python / PyTorch / CUDA / cuDNN | 3.14.6 / 2.14.1+cu130 / 13.0 / 9.24 | 3.13.16 / 2.11.0+cu130 / 13.0 / 9.27 | 3.13.16 / 2.11.0+cu130 / 13.0 / 9.27 |
+| OpenCV / NumPy / scikit-learn | 5.0.0 / 2.5.2 / 1.9.1 | 5.0.0 / 2.1.3 / 1.6.1 | 4.14.0 / 2.1.3 / 1.6.1 |
+| Source | `environment/hardware_software.md` | `results/week4/environment.json` | `results/week4/final_checks_environment.json` |
 
 | Configuration | Baseline (`configs/baseline.yaml`) | Final (`configs/optimized.yaml`) |
 |---|---|---|
@@ -127,7 +134,8 @@ validated, and then re-profiled.
 Redesign challenge (brief, section 6), studied one change at a time with 3 seeds (`report/week3_report.md`,
 `results/week3_table.csv`): **architecture** — EfficientNet-B0, ResNet-18 and ResNet-50 (4–24 M parameters)
 all reach val F1 ≈ 0.565 at 224 px, so the model is not the limit; **input representation** — 320 px
-improves F1 by +0.018 (12 runs), 384 px brings nothing more for 1.5× the time; **training strategy** —
+improves F1 by +0.018 (12 runs), 384 px brings nothing more for 1.5× the time, and switching CLAHE off
+changes val F1 by −0.009 ± 0.021 (3 paired seeds, section 7.7), i.e. nothing measurable; **training strategy** —
 cosine is the only change that helps, augmentation and regularization hurt at a 5-epoch budget, 10–15
 epochs overfit; **cost** — sections 7.1–7.4; **controlled comparison** — same splits, same budget, seeds 42–44.
 
@@ -144,7 +152,7 @@ epochs overfit; **cost** — sections 7.1–7.4; **controlled comparison** — s
 - **Repeats.** End-to-end: 3 timed repeats of the GPU run, 2 of the CPU baseline (285 s/epoch on one Colab
   core); ablation and test: 3 seeds each. We report mean ± standard deviation.
 - **Profiling.** `benchmarks/profile_gpu.py` gives three views: (1) PyTorch Profiler (CPU + CUDA), 5 warm-up
-  + 15 profiled steps, GPU busy time = **union** of kernel/copy intervals (not the sum, which over-counts
+  and 15 profiled steps, GPU busy time = **union** of kernel/copy intervals (not the sum, which over-counts
   overlapping streams), idle = 1 − busy / wall; (2) the same steps with a synchronization between data,
   forward, backward and optimizer, for attribution; (3) one full train epoch and one validation epoch.
   The profiler itself costs ~18 % (137.6 ms profiled vs 116.3 ms unprofiled step), so absolute times come
@@ -168,8 +176,19 @@ rows: machine C, both configurations on the same machine (`results/week4/end_to_
 | Evaluation / inference (64 img) | 0.2995 | 0.0132 | 22.8× | GPU + AMP |
 | **Training per epoch** (steady, train + val) | 285.41 ± 0.74 | 4.36 ± 0.02 | **65.4×** | final configuration |
 | One-time setup | 0.3 | 1.7 | 0.2× | GPU upload + precompute (cache already built) |
-| **Total pipeline, 5-epoch training** | 1,427.5 | 23.5 | **60.7×** | final configuration |
+| **Total pipeline, 5-epoch training** | 1,427.5 | 23.5 | **60.7×** | final configuration, cache already built |
+| Total pipeline, first run (cache built in the run) | 1,427.5 | ≈ 134.9 | **≈ 10.6×** | derived: 113.1 s setup of the run that built the 320-px cache in place of the 1.7 s above |
 | Test-set inference (450 img, img/s) | 19 (baseline model, GPU, CPU preprocessing) | 686 (final model, GPU) | — | `results/week4/test_runs.csv` |
+
+**Cold start vs repeated runs.** The 60.7× row is the steady situation: the decoded-image cache is built
+once per image size and reused by every later run (the timed repeats, the ablation, the test runs).
+The very first run of the final configuration also decodes and resizes the 2,549 training and
+validation images into that cache: 113.1 s of setup on machine C's single core, measured in the run
+that first built the 320-px cache (`exp_r18_res320_gpu`, seed 42, `results/exp_r18_res320_gpu/history.json`;
+the next run with the same size, `exp_r18_res320_bs64_gpu`, had a 4.2 s setup). Replacing the 1.7 s
+warm-cache setup by those 113.1 s gives 23.5 − 1.7 + 113.1 ≈ 134.9 s, **≈ 10.6×** faster than the
+baseline. This row combines two runs from different Colab sessions, so it is an estimate; the baseline
+has no such one-time cost because it decodes every image again at every epoch.
 
 The end-to-end rows compare *different models* (reference CNN at 224 px vs ResNet-18 at 320 px). To
 separate the GPU/pipeline effect from the model effect, the same machine C gives
@@ -191,7 +210,7 @@ than the baseline** on the same machine, and better.
 **Amdahl.** The cache alone: p = 0.654, s = 1,807 → S = 1/((1 − p) + p/s) = **2.89×**, the bound itself;
 measured on machine L 1.53× for 5 epochs (the 21 s build and the remaining loader overhead are inside).
 All measured stage speedups together (loading 1,807×, preprocessing 17.3×, training step 27.6×, "other"
-5.3 % unchanged) predict **15.5×**; the "other" 5.3 % alone caps it at 18.8×. The measured 135× for the same
+5.3 % unchanged) predict **15.5×**; the "other" 5.3 % alone caps it at 19.0×. The measured 135× for the same
 model is larger because (a) it was measured on machine C, whose single CPU core makes every CPU stage
 ~2.3× slower than on machine L (200 s vs 86 s per CPU epoch), and (b) the "other" Python/collate overhead
 disappears too once there is no DataLoader. This is the brief's point: a stage speedup says little about
@@ -250,10 +269,12 @@ evaluated each checkpoint **once** on the 450 test images. A lock file records t
 | **Macro-F1** | 0.313 ± 0.010 | **0.590 ± 0.021** |
 | Recall grade 0 / 1 / 2 / 3 / 4 | 0.60 / 0.43 / **0.01** / 0.30 / 0.47 | 0.46 / 0.69 / **0.42** / 0.55 / 0.84 |
 | Validation macro-F1 of the same checkpoints | 0.327 | 0.562 |
+| Within one grade (ordinal, see below) | 0.636 ± 0.027 | **0.943 ± 0.010** |
+| Quadratic weighted kappa (ordinal, see below) | 0.335 ± 0.026 | **0.835 ± 0.007** |
 | Confusion matrix | Fig. 6 (`results/week4/confusion_baseline.json`) | Fig. 6 (`confusion_final.json`) |
 
 Macro-precision/recall/F1 are the unweighted means over the five grades of the one-vs-rest
-precision, recall and F1 (scikit-learn, `average="macro"`); with balanced classes accuracy is informative,
+precision, recall and F1 (scikit-learn, `average="macro"`); with near-balanced classes accuracy is informative,
 but macro-F1 exposes the class the baseline ignores: **grade 2 is almost never predicted by the baseline
 (recall 0.01)**, as already seen on validation in Week 1. The final model predicts all grades.
 
@@ -264,6 +285,17 @@ image is predicted as 0, 1 or 2, while the baseline sends 16 % of grade-4 images
 point is grade 0 (42 % predicted as grade 1). The test F1 (0.590) is slightly *above* the validation F1 of
 the same checkpoints (0.562) and within the seed spread: no sign that the ~20 configurations compared on
 validation in Week 3 over-fitted the validation set.
+
+**Ordinal metrics.** DR grades are ordered, and accuracy or macro-F1 count a 3 → 2 error the same as a
+3 → 0 error. Two standard ordinal metrics quantify the "adjacent grades" observation above:
+*within one grade* = fraction of test images whose predicted grade is at most one grade from the true
+grade; *quadratic weighted kappa* = Cohen's kappa with weights (i − j)², i.e. 1 − Σ w·O / Σ w·E with
+O the observed confusion matrix and E the one expected by chance from its row and column totals
+(0 = chance level, 1 = perfect; identical to scikit-learn `cohen_kappa_score(weights="quadratic")`).
+They were computed **after** the single test evaluation, from the per-seed confusion matrices it
+had already saved (`python scripts/ordinal_metrics.py` → `results/week4/ordinal_metrics.csv`); no model
+was re-run and no decision depends on them. The final model is wrong on 40 % of images but off by two
+grades or more on only 5.7 % (baseline 36.4 %), and its kappa rises from 0.33 to 0.84.
 
 ![Figure 3 — Validation macro-F1 vs steady epoch time for every Week 3 configuration (dots), and the test F1 of the baseline and final model (stars).](../results/figures/fig3_accuracy_vs_time.png)
 
@@ -350,6 +382,36 @@ the same RTX under Windows; (2) with `channels_last` off, the RTX trains 1.2× f
 the T4 (3.83 vs 4.58 s), but its cold epoch is longer (11.3 vs 5.1 s, not investigated), so the 5-epoch
 wall time stays above the T4's. These RTX numbers mix GPU and operating system and are not a GPU ranking.
 
+## 7.7 Input representation: CLAHE on vs off (validation only)
+
+The redesign challenge asks whether contrast enhancement affects quality and runtime. `configs/exp_clahe_off.yaml`
+is `configs/optimized.yaml` with one change, `preprocess.clahe: false` (same split, ResNet-18, 320 px,
+5 epochs). Both variants were trained with seeds 42–44 in the **same session** on machine K, seed-major
+order, the image cache built beforehand (`notebooks/final_checks_kaggle.ipynb`,
+`results/week4/input_repr.csv`, `input_repr_runs.csv`). Only the validation set is used.
+
+| Variant (machine K, 3 seeds) | Val macro-F1 | Val accuracy | Steady epoch (s) | Setup (s) |
+|---|---|---|---|---|
+| CLAHE on (= final configuration) | 0.576 ± 0.032 | 0.584 ± 0.025 | 4.64 ± 0.55 | 2.28 ± 1.13 |
+| CLAHE off | 0.567 ± 0.012 | 0.575 ± 0.009 | 4.68 ± 0.33 | 1.02 ± 0.02 |
+| Paired difference, off − on | **−0.009 ± 0.021** | −0.010 | — | — |
+
+- **Quality: no measurable effect.** Per seed, removing CLAHE changes F1 by +0.014, −0.016 and −0.025:
+  mixed signs, and a mean smaller than the seed-to-seed spread (0.032 with CLAHE). With three seeds we
+  cannot detect a difference below ~0.03 F1, so the honest conclusion is "no effect at this budget",
+  not "CLAHE is useless". A plausible reason: the ImageNet-pretrained ResNet-18, with per-channel
+  normalization and batch norm, already adapts to the contrast differences CLAHE was designed to remove.
+- **Runtime: almost free in the final design.** CLAHE is precomputed once on the GPU (≈ 0.6 s of setup:
+  1.63 vs 1.00 s for seeds 43–44; seed 42 also includes the first CUDA/cuDNN initialization) and costs
+  nothing per epoch. It was 2.3 % of the CPU baseline epoch (section 4), and the GPU preprocessing it is
+  part of took 23.7 ms per step when recomputed every step (section 7.2); precomputation is what makes the
+  question moot for speed.
+- **Decision.** The frozen configuration keeps CLAHE: there is no evidence to remove it and the test set
+  has already been used, so no configuration change follows from this check. Steady-epoch times on K vary
+  more than on C (± 0.3–0.6 s vs ± 0.03 s) and are not used for any speed claim. The same configuration and
+  seed also give slightly different F1 on K and on C (seed 42: 0.542 vs 0.563 in the ablation), the
+  cross-session non-determinism discussed in section 9; this is why both variants were run in one session.
+
 # 8. Discussion and critical analysis
 
 **Why did some stages benefit more than others?** Per-pixel, embarrassingly parallel work (green channel
@@ -397,12 +459,13 @@ which we keep only because they cost nothing.
 
 # 9. Limits and threats to validity
 
-- **Dataset.** 2,999 images (2,099 for training) from one source; balanced classes do not reflect clinical
+- **Dataset.** 2,999 images (2,099 for training) from one source; near-balanced classes do not reflect clinical
   prevalence; the test set has 450 images (~90 per grade), so one image is 0.2 % of accuracy and the seed
   std (0.02) is of the same order as differences we discuss. Results say nothing about clinical safety or
   other cameras/hospitals; this is an educational benchmark, not a diagnostic device.
-- **Two machines.** Stage tables (machine L) and end-to-end tables (machine C) are not comparable to each
-  other; every speedup quoted compares runs on one machine. Machine C's single CPU core makes the CPU
+- **Two machines (plus K for checks).** Stage tables (machine L) and end-to-end tables (machine C) are not
+  comparable to each other; every speedup quoted compares runs on one machine. Machine K (Kaggle) only
+  ran the test suite and the CLAHE check (section 7.7), a within-session quality comparison. Machine C's single CPU core makes the CPU
   baseline weak: the same baseline epoch takes 86 s on machine L's 8-core CPU vs 285 s here, so against a
   multi-core CPU the ratio would be roughly 3.3× smaller (an estimate, not a measurement).
 - **Portability.** The final configuration was re-run on one other machine only (section 7.6). There, the
@@ -413,7 +476,11 @@ which we keep only because they cost nothing.
   for this reason; Week 3 and Week 4 numbers for the same config differ by 5 % (4.58 vs 4.35 s).
 - **Measurement.** The profiler adds ~18 % to a step; shares are robust, absolute profiled times are not.
   CPU baseline end-to-end: 2 repeats only (285 s/epoch); total 5-epoch times are extrapolated from 2-epoch
-  runs (setup + cold + 4 × steady).
+  runs (setup + cold + 4 × steady). The first-run figure (≈ 10.6×, section 7.1) combines the cache-build
+  setup of one run with the timings of another Colab session; it was not measured as a single run.
+- **Post-hoc metrics.** Within-one-grade accuracy and quadratic weighted kappa (section 7.3) were added
+  after the test evaluation, from its saved confusion matrices; they describe the same predictions and
+  were not used for any choice.
 - **Numerics and seeds.** AMP and fused AdamW change floating-point results; GPU training with
   `cudnn_benchmark` can be non-deterministic (Week 3 saw ±0.02 F1 between identical configs). Three seeds
   establish directions, not statistical significance for differences below ~0.03 F1.
@@ -427,7 +494,8 @@ which we keep only because they cost nothing.
 Measuring first changed every decision: the obvious target (move the CNN to the GPU) was not the first
 bottleneck; JPEG decoding was, and a CPU cache removed it. Each later optimization paid only once the
 bottleneck had moved to it (AMP: 0× while input-bound, 4.5× once compute-bound). The final pipeline is
-**60.7× faster end-to-end** than the baseline on the same machine, **doubles test macro-F1 (0.31 → 0.59)**,
+**60.7× faster end-to-end** than the baseline on the same machine once the image cache exists (≈ 10.6× for
+the very first run, which builds it), **doubles test macro-F1 (0.31 → 0.59)**,
 keeps the GPU busy 99.6 % of the time, and every claim is backed by a file in `results/`.
 
 Future work, from the remaining profile: (1) replace the stem max-pool (12.5 % of GPU time; its NHWC
@@ -436,7 +504,9 @@ backward is slow on the T4) by a strided convolution or test an NCHW pool inside
 resolution, measuring the cold-epoch cost; (3) inference-only optimization (TensorRT / fp16 export);
 (4) an ordinal loss, since errors are between adjacent grades; (5) the full protocol (end-to-end
 benchmark, ablation) on the RTX 4070 under Linux (WSL2): section 7.6 only re-ran the final configuration
-and isolated the `channels_last` effect.
+and isolated the `channels_last` effect; (6) the input representations not yet tested: an
+aspect-ratio-preserving crop (the square resize turns the fundus disc into an ellipse in 68 % of the
+images, `report/week1_report.md`) and a green-channel input.
 
 # 11. Reproducibility
 
@@ -449,17 +519,24 @@ python benchmarks/profile_gpu.py --config configs/optimized.yaml        # sec. 7
 python benchmarks/profile_gpu.py --config configs/exp_resident_off.yaml --no-epochs
 python scripts/week4_ablation.py --seeds 42,43,44                       # sec. 7.4
 python scripts/week4_test_eval.py                                       # sec. 7.3 (once)
+python scripts/ordinal_metrics.py                                       # sec. 7.3 (kappa)
 python benchmarks/benchmark_end_to_end.py --only optimized_gpu --epochs 2 --repeats 3
 python benchmarks/benchmark_end_to_end.py --only baseline_cpu --epochs 2 --cpu-repeats 2
 python scripts/make_figures.py                                          # figures + results/tables.md
 ```
 
+Final checks on Kaggle T4 (machine K), `notebooks/final_checks_kaggle.ipynb`: the test suite, **44 passed,
+0 failed** (`results/logs/pytest.log`, including the CPU/GPU equivalence, CuPy and prefetcher tests), and
+the CLAHE on/off runs of section 7.7.
+
 Portability (section 7.6), on the RTX 4070 laptop:
 
 ```
-python src/train.py --config configs/optimized.yaml --device cuda --run optimized_rtx --seed 42             # also _s43, _s44
-python src/train.py --config configs/exp_channels_last_off.yaml --device cuda --run optimized_rtx_nocl --seed 42   # also _s43, _s44
-python benchmarks/bench_channels_last.py --out results/rtx4070/channels_last_windows.json  # then under WSL2: ..._wsl.json
+# seed 42 shown; repeat with --seed 43 --run ..._s43 and --seed 44 --run ..._s44
+python src/train.py --config configs/optimized.yaml --device cuda --run optimized_rtx --seed 42
+python src/train.py --config configs/exp_channels_last_off.yaml --device cuda --run optimized_rtx_nocl --seed 42
+# under Windows, then the same command under WSL2 with --out .../channels_last_wsl.json
+python benchmarks/bench_channels_last.py --out results/rtx4070/channels_last_windows.json
 python scripts/make_figures.py --only tables,metrics_json
 ```
 
@@ -478,7 +555,8 @@ copy it hides was < 2 % of a step).
 (cProfile, `profile_stages.json`). (2) Greatest end-to-end improvement: on the CPU, the cache; on the
 GPU, mixed precision (4.54× in the ablation), after the data path was fixed. (3) Less than expected:
 prefetcher, fused AdamW, cuDNN autotuning, and AMP while input-bound. (4) Quality: test macro-F1
-0.313 → 0.590, from the model/input redesign, not from the speed optimizations (ablation). (5) Remaining
+0.313 → 0.590 (quadratic weighted kappa 0.33 → 0.84, 94 % within one grade), from the model/input
+redesign, not from the speed optimizations (ablation). (5) Remaining
 bottleneck: GPU compute — convolutions 50 %, batch norm 19 %, elementwise 17 %, max-pool 12.5 %; GPU idle
 0.4 %. (6) Reproducible elsewhere: correctness (bit-exact preprocessing, test metrics within seed noise),
 the bottleneck sequence and the Amdahl reasoning; hardware-dependent: absolute times, the 65× ratio
