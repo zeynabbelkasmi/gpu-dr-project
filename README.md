@@ -99,6 +99,8 @@ ou à la main dans cet ordre :
 | Profil GPU de la config finale (A7.2-A7.4, A7.7) | `python benchmarks/profile_gpu.py --config configs/optimized.yaml` | `results/week4/profile_optimized/` (`summary.json`, `top_ops.txt`, `kernels.csv`, `timeline.png`, `trace.json`) |
 | Ablation, une optimisation coupée à la fois, 3 seeds (A7.6) | `python scripts/week4_ablation.py` | `results/week4/ablation.csv`, `ablation_runs.csv` |
 | Test set, **une seule fois**, config figée (A7.8) | `python scripts/week4_test_eval.py` | `results/week4/test_summary.csv`, `test_runs.csv`, `confusion_*.json` |
+| Métriques ordinales (à un grade près, kappa pondéré quadratique), lues dans les matrices de confusion déjà sauvegardées : ni modèle ni image de test | `python scripts/ordinal_metrics.py` | `results/week4/ordinal_metrics.csv` |
+| Vérifications finales sur Kaggle T4 : tests + CLAHE avec / sans (3 seeds, validation seulement) | [`notebooks/final_checks_kaggle.ipynb`](notebooks/final_checks_kaggle.ipynb) (Settings : GPU T4 x2, Internet On, puis Run All) | `results/logs/pytest.log`, `results/week4/input_repr.csv`, `input_repr_runs.csv`, `input_repr/` |
 | Bout en bout CPU vs GPU, même machine (A7.1, A7.5) | `python benchmarks/benchmark_end_to_end.py --epochs 2 --repeats 3 --cpu-repeats 2` | `results/week4/end_to_end.csv`, `end_to_end_runs.csv` |
 | Figures 1-6 et Tables 2-3 (A8) | `python scripts/make_figures.py` (textes seuls : `--only tables,metrics_json`) | `results/figures/fig*.png`, `results/tables.md`, `results/metrics.json` |
 

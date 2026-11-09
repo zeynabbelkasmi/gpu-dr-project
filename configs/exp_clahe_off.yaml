@@ -1,0 +1,34 @@
+# Input representation (Week 4 extra): configs/optimized.yaml with CLAHE switched off.
+# Only preprocess.clahe changes (split, model, 320 px, 5 epochs identical). Validation only.
+seed: 42
+data:
+  root: data/dr_dataset
+  split_csv: splits/splits.csv
+  image_size:
+  - 320
+  - 320
+  num_classes: 5
+  train_frac: 0.7
+  val_frac: 0.15
+  batch_size: 64
+  num_workers: 2
+  cache_dir: data/cache
+  gpu_resident: true
+preprocess:
+  clahe: false
+  circular_crop: true
+  normalize: true
+  gamma: 1.0
+  gpu: true
+  precompute: true
+train:
+  model: resnet18
+  epochs: 5
+  lr: 0.001
+  scheduler: cosine
+  amp: true
+  channels_last: true
+  cudnn_benchmark: true
+  fused_adamw: true
+  weight_decay: 0.0
+  label_smoothing: 0.0
